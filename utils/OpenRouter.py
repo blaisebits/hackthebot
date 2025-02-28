@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from typing import Optional
 from os import getenv
 from langchain_community.chat_models import ChatOpenAI

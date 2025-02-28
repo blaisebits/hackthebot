@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from utils.OpenRouter import ChatOpenRouter
 from langchain.prompts.prompt import PromptTemplate
 
