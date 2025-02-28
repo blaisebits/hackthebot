@@ -16,7 +16,7 @@ class RoboPagesTool(BaseTool):
     parameters: List[Dict]
     __baseURL: str = getenv("ROBOPAGES_SERVER", "http://127.0.0.1:8000")
 
-    def _run(self, **kwargs):
+    def _run(self, *args, **kwargs):
         process_url = f"{self.__baseURL}/process"
         headers = {"Content-type": "application/json"}
 

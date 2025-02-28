@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from utils.OpenRouter import ChatOpenRouter
 from langchain.prompts.prompt import PromptTemplate
 from langchain_core.tools import Tool
@@ -6,7 +9,7 @@ from langchain.agents import (
     AgentExecutor,
 )
 from langchain import hub
-import tools.Nmap as Nmap
+from utils.LangChain_RoboPages import RoboPages
 
 def scan(targets: [str]) -> str:
     model = "microsoft/phi-4"
@@ -18,7 +21,7 @@ def scan(targets: [str]) -> str:
 
     template = \
 """
-Given the list of targets discover which network ports are open
+Given the list of targets discover which common network ports are open
 Targets: {targets}
 """
     prompt_template = PromptTemplate(
@@ -26,30 +29,10 @@ Targets: {targets}
         input_variables=["targets"]
     )
 
-    tools_for_agents = [
-        Tool(
-            name="Nmap Small Scan",
-            func=Nmap.nmap_port_scan_small,
-            description="Useful for quickly scanning the top 100 likely ports"
-        ),
-        Tool(
-            name="Nmap Medium Scan",
-            func=Nmap.nmap_port_scan_medium,
-            description="Useful for quickly scanning the top 1000 likely ports"
-        ),
-        Tool(
-            name="Nmap Large Scan",
-            func=Nmap.nmap_port_scan_large,
-            description="Useful for quickly scanning the top 4000 likely ports"
-        ),
-        Tool(
-            name="Nmap Huge Scan",
-            func=Nmap.nmap_port_scan_large,
-            description="Useful for scanning for all open ports"
-        ),
-    ]
-
     react_prompt = hub.pull("hwchase17/react")
+
+    rb = RoboPages()
+    tools_for_agents = rb.get_tools()
 
     agent = create_react_agent(
         llm=llm,
@@ -68,7 +51,7 @@ Targets: {targets}
     agent_input = {
         "input": prompt_template.format_prompt(targets=target_list)
     }
-    result = agent_executor.invoke( input = agent_input)
+    result = agent_executor.invoke( input = agent_input )
     return result["output"]
 
 if __name__ == "__main__":
