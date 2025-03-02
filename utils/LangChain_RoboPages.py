@@ -1,14 +1,8 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-from pprint import pprint
-
 from os import getenv
-from typing import Dict, List, Any
+from typing import Dict, List
 import requests
 
 from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
 
 class RoboPagesTool(BaseTool):
     name: str
@@ -138,4 +132,4 @@ if __name__ == "__main__":
         print(f"\033[32mPassed!\033[0m")
     else:
         print(f"\033[91mFailed!\033[0m")
-    pprint("Done!")
+    print("Done!")
