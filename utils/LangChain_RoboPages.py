@@ -3,6 +3,8 @@ from typing import Dict, List
 import requests
 
 from langchain_core.tools import BaseTool
+from pydantic import BaseModel, Field
+
 
 class RoboPagesTool(BaseTool):
     name: str
@@ -32,12 +34,17 @@ class RoboPagesTool(BaseTool):
         )
         return response.json()[0]["content"]
 
+class RoboPagesOutput(BaseModel):
+    tool: str = Field(description="The tool that was used")
+    parameters: List[Dict] = Field(description="The parameters for the requested tool")
+
 class RoboPages:
     def __init__(self, server_url: str = None):
         """Initialize RoboPages with an optional base URL override."""
         self.__server_url: str = server_url if server_url else getenv("ROBOPAGES_SERVER", "http://127.0.0.1:8000")
         self.__server_url += "/?flavor=rigging"
         self.tools: List[RoboPagesTool] = []
+        self.RoboPagesOutput = RoboPagesOutput
 
     def __get_tools(self):
         response = requests.get(self.__server_url)
@@ -79,6 +86,19 @@ class RoboPages:
             if tool.name == name:
                 return tool
         return None
+
+    def filter_tools(self, filter_string: str) -> RoboPagesTool | None:
+        """Retrieve a set of tools with the filter_string in the name, fetching and creating tools if needed."""
+        output: List[RoboPagesTool] = []
+        if not self.tools:
+            self.create_tools()
+        for tool in self.tools:
+            if filter_string.lower() in tool.name:
+                output.append(tool)
+        if output:
+            return output
+        else:
+            return None
 
 
 if __name__ == "__main__":
@@ -128,6 +148,16 @@ if __name__ == "__main__":
     rb = RoboPages()
     robo_tool = []
     robo_tool = rb.get_tool(name= "http_get")
+    if robo_tool:
+        print(f"\033[32mPassed!\033[0m")
+    else:
+        print(f"\033[91mFailed!\033[0m")
+    print("Done!")
+
+    print("--- Filter Tool Function")
+    rb = RoboPages()
+    robo_tool = []
+    robo_tool = rb.filter_tools(filter_string="http_get")
     if robo_tool:
         print(f"\033[32mPassed!\033[0m")
     else:
