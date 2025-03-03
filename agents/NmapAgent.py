@@ -1,58 +1,68 @@
 from dotenv import load_dotenv
+from langchain.chains.hyde.prompts import arguana
+
 load_dotenv()
 
-from utils.OpenRouter import ChatOpenRouter
+# from utils.OpenRouter import ChatOpenRouter
+from langchain_anthropic import ChatAnthropic
 from langchain.prompts.prompt import PromptTemplate
-from langchain_core.tools import Tool
-from langchain.agents import (
-    create_react_agent,
-    AgentExecutor,
-)
-from langchain import hub
+
 from utils.LangChain_RoboPages import RoboPages
 
-def scan(targets: [str]) -> str:
-    model = "microsoft/phi-4"
-
-    llm = ChatOpenRouter(
-        model_name= model,
-        temperature=0.55
-    )
-
-    template = \
-"""
-Given the list of targets discover which common network ports are open
-Targets: {targets}
-"""
-    prompt_template = PromptTemplate(
-        template=template,
-        input_variables=["targets"]
-    )
-
-    react_prompt = hub.pull("hwchase17/react")
-
+def scan(task: str, targets: [str]) -> str:
+    model = "claude-3-7-sonnet-latest"
     rb = RoboPages()
-    tools_for_agents = rb.get_tools()
+    tools = rb.filter_tools(filter_string="nmap")
 
-    agent = create_react_agent(
-        llm=llm,
-        tools=tools_for_agents,
-        prompt=react_prompt
+    # llm = ChatAnthropic(
+    #     model= model,
+    #     temperature=0.55,
+    #     tools = tools
+    # ).with_structured_output(rb.RoboPagesOutput)
+    llm = ChatAnthropic(
+        model=model,
+        temperature=0.55,
+        tools=tools
+    ).with_structured_output(rb.RoboPagesOutput)
+    llm.bind_tools(tools)
+
+    prompt_template = PromptTemplate.from_template( template="""
+You are a expert on the tool Nmap, your primary job is to perform <TASKS> defined below using the provided <TOOLS>
+Addition context may be provided and should be taken into consideration.
+
+<TOOLS>
+{tools}
+</TOOLS>
+
+<TASKS>
+{input}
+</TASKS>
+
+<CONTEXT>
+{agent_scratchpad}
+</CONTEXT>
+"""
     )
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools_for_agents,
-        verbose=True
+    template = prompt_template.format_prompt(
+        tools = tools,
+        input = f"{task} : {targets}",
+        agent_scratchpad = ""
     )
 
-    #Checks for more than one target
-    target_list = targets[0] if len(targets) == 1 else ", ".join(targets)
+    tool_query = llm.invoke(
+        input = template
+    )
 
-    agent_input = {
-        "input": prompt_template.format_prompt(targets=target_list)
-    }
-    result = agent_executor.invoke( input = agent_input )
-    return result["output"]
+    nmap_results = rb.get_tool(tool_query.tool)._run(
+        **tool_query.parameters[0]
+    )
+    return output
+
 
 if __name__ == "__main__":
-    print(scan(["scanme.nmap.org"]))
+    print(
+        scan(
+            task = "Find common open TCP ports",
+            targets = ["scanme.nmap.org"]
+        )
+    )
