@@ -36,7 +36,7 @@ class RoboPagesTool(BaseTool):
 
 class RoboPagesOutput(BaseModel):
     tool: str = Field(description="The tool that was used")
-    parameters: List[Dict] = Field(description="The parameters for the requested tool")
+    parameters: Dict = Field(description="The parameters for the requested tool")
 
 class RoboPages:
     def __init__(self, server_url: str = None):
@@ -87,7 +87,7 @@ class RoboPages:
                 return tool
         return None
 
-    def filter_tools(self, filter_string: str) -> RoboPagesTool | None:
+    def filter_tools(self, filter_string: str) -> List[RoboPagesTool] | None:
         """Retrieve a set of tools with the filter_string in the name, fetching and creating tools if needed."""
         output: List[RoboPagesTool] = []
         if not self.tools:
