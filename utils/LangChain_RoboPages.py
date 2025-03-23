@@ -1,15 +1,19 @@
 from os import getenv
-from typing import Dict, List
+from typing import Dict, List, Optional, Type
 import requests
 
-from langchain_core.tools import BaseTool
-from pydantic import BaseModel, Field
+from langchain_core.tools import BaseTool, ArgsSchema
+from pydantic import BaseModel, Field, create_model
 
+
+def create_arg_schema(model_name: str, description: str, fields: Dict[str, Type]):
+    return create_model(model_name)
 
 class RoboPagesTool(BaseTool):
     name: str
     description: str
     parameters: List[Dict]
+    args_schema: Optional[ArgsSchema]
     __baseURL: str = getenv("ROBOPAGES_SERVER", "http://127.0.0.1:8000")
 
     def _run(self, *args, **kwargs):
@@ -51,7 +55,7 @@ class RoboPages:
         response.raise_for_status()
         return response.json()
 
-    def create_tools(self) -> List[RoboPagesTool]:
+    def __create_tools(self) -> List[RoboPagesTool]:
         """Create LangChain Tools based on the functions from the root endpoint."""
         functions = self.__get_tools()
         self.tools = []
@@ -63,10 +67,22 @@ class RoboPages:
                 description = func["description"]
                 parameters =  func["parameters"]
 
+                args = {}
+                for param in parameters:
+                    args[param["name"]] = (param["type"], Field(description=param["description"]))
+
+                # create_model(
+                #     "http_get",
+                #     url=(str, Field(description="The URL to perform the GET request on.")),
+                #     user_agent=(
+                #     str, Field(description="An optional, NON EMPTY User-Agent string to use for the request."))
+                # )
+
                 tool = RoboPagesTool(
                     name= name,
                     description= description,
-                    parameters= parameters
+                    parameters= parameters,
+                    args_schema= create_model( f"{name}_schema", **args)
                 )
                 self.tools.append(tool)
 
@@ -75,13 +91,13 @@ class RoboPages:
     def get_tools(self) -> List[RoboPagesTool]:
         """Return the list of created tools, fetching and creating tools if needed."""
         if not self.tools:
-            self.create_tools()
+            self.__create_tools()
         return self.tools
 
     def get_tool(self, name: str) -> RoboPagesTool | None:
         """Retrieve a specific tool by its name, fetching and creating tools if needed."""
         if not self.tools:
-            self.create_tools()
+            self.__create_tools()
         for tool in self.tools:
             if tool.name == name:
                 return tool
@@ -91,7 +107,7 @@ class RoboPages:
         """Retrieve a set of tools with the filter_string in the name, fetching and creating tools if needed."""
         output: List[RoboPagesTool] = []
         if not self.tools:
-            self.create_tools()
+            self.__create_tools()
         for tool in self.tools:
             if filter_string.lower() in tool.name:
                 output.append(tool)
@@ -124,6 +140,11 @@ if __name__ == "__main__":
         name=RoboPagesTool_test_name,
         description=RoboPagesTool_test_description,
         parameters=RoboPagesTool_test_parameters,
+        args_schema=create_model(
+            "http_get",
+            url=(str, Field(description="The URL to perform the GET request on.")),
+            user_agent=(str, Field(description="An optional, NON EMPTY User-Agent string to use for the request."))
+        )
     )
     http_get_tool_call = http_get.invoke({
         "url": "http://example.com",
