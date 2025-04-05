@@ -1,4 +1,4 @@
-from typing import Annotated, List, Dict
+from typing import Annotated, List, Dict, Tuple
 from typing_extensions import TypedDict
 
 from langchain_core.messages import AnyMessage
@@ -21,6 +21,10 @@ class Host(TypedDict):
     ip_address: str
     ports: Dict[str, Port]
 
+class Task(TypedDict):
+    task: str
+    completed: bool|str
+
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     node_path: List[str]
@@ -28,7 +32,7 @@ class StingerState(TypedDict):
     tool_calls: List[str]
 
 class ReconState(TypedDict):
-    tasks: str
+    tasks: List[Task] #Updated to yes, no, inprogress
     hosts: Dict[str, Host]
     context: str
     messages: Annotated[list[AnyMessage], add_messages]

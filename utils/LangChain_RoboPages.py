@@ -14,6 +14,7 @@ class RoboPagesTool(BaseTool):
     description: str
     parameters: List[Dict]
     args_schema: Optional[ArgsSchema]
+
     __baseURL: str = getenv("ROBOPAGES_SERVER", "http://127.0.0.1:8000")
 
     def _run(self, *args, **kwargs):
@@ -29,14 +30,14 @@ class RoboPagesTool(BaseTool):
                 }
             }
         ]
-        # based on rigging format {"name": str, "args": dict}
 
         response = requests.post(
             url=process_url,
             headers=headers,
             json=payload
         )
-        return response.json()[0]["content"]
+        return response.json()[0]
+        # return response.json()[0]["content"]
 
 class RoboPagesOutput(BaseModel):
     tool: str = Field(description="The tool that was used")
@@ -67,22 +68,16 @@ class RoboPages:
                 description = func["description"]
                 parameters =  func["parameters"]
 
+                #Building arg fields for pydantic
                 args = {}
                 for param in parameters:
                     args[param["name"]] = (param["type"], Field(description=param["description"]))
-
-                # create_model(
-                #     "http_get",
-                #     url=(str, Field(description="The URL to perform the GET request on.")),
-                #     user_agent=(
-                #     str, Field(description="An optional, NON EMPTY User-Agent string to use for the request."))
-                # )
 
                 tool = RoboPagesTool(
                     name= name,
                     description= description,
                     parameters= parameters,
-                    args_schema= create_model( f"{name}_schema", **args)
+                    args_schema= create_model( f"{name}_schema", **args),
                 )
                 self.tools.append(tool)
 

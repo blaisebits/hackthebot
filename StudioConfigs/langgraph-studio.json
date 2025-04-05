@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "stinger": "./agents/StingerAgent.py:stinger_graph",
+    "agent": "./agents/ReconAgent.py:recon_graph"
+  },
+  "env": ".env"
+}
