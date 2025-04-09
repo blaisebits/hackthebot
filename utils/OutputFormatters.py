@@ -3,11 +3,6 @@ from typing import Dict, List
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 
-
-class RoboPagesOutput(BaseModel):
-    tool: str = Field(description="The tool that was used")
-    parameters: Dict = Field(description="The parameters for the requested tool")
-
 class NmapOutputFormat(BaseModel):
     ip_address: str = Field(description="The host ip address")
     ports: List[str] = Field(description="The port number")
@@ -16,5 +11,10 @@ class NmapOutputFormat(BaseModel):
     versions: List[str] = Field(description="The version of the server software running")
     scripts: List[List[str]] = Field(description="Nmap Scripting engine output")
 
-nmap_parser = PydanticOutputParser(
-    pydantic_object=NmapOutputFormat)
+class GoBusterOutputFormat(BaseModel):
+    target: str = Field(description="Target scanned")
+
+tool_parsers = [
+    NmapOutputFormat,
+    GoBusterOutputFormat
+]

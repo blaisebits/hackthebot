@@ -1,4 +1,4 @@
-from typing import Annotated, List, Dict, Tuple
+from typing import Annotated, List, Dict, Tuple, Literal, Optional
 from typing_extensions import TypedDict
 
 from langchain_core.messages import AnyMessage
@@ -23,16 +23,26 @@ class Host(TypedDict):
 
 class Task(TypedDict):
     task: str
-    completed: bool|str
+    status: Literal["new", "working", "completed"]
+    agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
+
+"""Used for structured output"""
+class TaskList(TypedDict):
+    tasks: List[Task]
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    node_path: List[str]
     hosts: Dict[str, Host]
-    tool_calls: List[str]
+    tasks: List[Task]
+    context: str
+    next: str
+
+class StingerRouter(TypedDict):
+    """Agent to route to next. If no workers needed, route to FINISH."""
+    next: Literal["Recon","Enum","Exploit","PostEx","FINISH"]
 
 class ReconState(TypedDict):
-    tasks: List[Task] #Updated to yes, no, inprogress
+    tasks: List[Task]
     hosts: Dict[str, Host]
     context: str
     messages: Annotated[list[AnyMessage], add_messages]

@@ -1,0 +1,17 @@
+flowchart TD
+    User <--> |Messages| Stinger
+    Stinger <--> |ReconState| Recon
+    Recon --> |Process Tasks| ReconToolCalls
+    ReconToolCalls --> |Output\Context| Recon
+
+    Stinger <--> |EnumState| Enum
+    Enum --> |Process Tasks| EnumToolCalls
+    EnumToolCalls --> |Output\Context| Enum
+
+    Stinger <--> |ExploitState| Exploiter
+    Exploiter --> |Process Tasks| ExploiterToolCalls
+    ExploiterToolCalls --> |Output\Context| Exploiter
+
+    Stinger <--> |PostExState| PostEx
+    PostEx --> |Process Tasks| PostExToolCalls
+    PostExToolCalls --> |Output\Context| PostEx
