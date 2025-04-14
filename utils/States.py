@@ -9,7 +9,7 @@ from utils.OutputFormatters import NmapOutputFormat
 
 """Single port on a network entity"""
 class Port(TypedDict):
-    port_num: int
+    port: int
     protocol: str
     state: str
     service: str
@@ -19,7 +19,8 @@ class Port(TypedDict):
 """Single network entity"""
 class Host(TypedDict):
     ip_address: str
-    ports: Dict[str, Port]
+    hostname: Optional[str]
+    ports: Dict[str, Port] # example {"22/tcp":{ Port({..} }
 
 class Task(TypedDict):
     task: str
@@ -32,7 +33,7 @@ class TaskList(TypedDict):
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: Dict[str, Host]
+    hosts: Dict[str, Host] # e.g. hostname(1.2.3.4)
     tasks: List[Task]
     context: str
     next: str
@@ -40,9 +41,3 @@ class StingerState(TypedDict):
 class StingerRouter(TypedDict):
     """Agent to route to next. If no workers needed, route to FINISH."""
     next: Literal["Recon","Enum","Exploit","PostEx","FINISH"]
-
-class ReconState(TypedDict):
-    tasks: List[Task]
-    hosts: Dict[str, Host]
-    context: str
-    messages: Annotated[list[AnyMessage], add_messages]

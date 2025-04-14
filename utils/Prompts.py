@@ -41,8 +41,8 @@ def get_stinger_prompt_template():
                      "{members}\n"
                      "</MEMBERS>\n"
                      "<CONTEXT>\n"
-                     "Team Member Roles:"
-                     "* Recon: Build a comprehensive picture of the target to identify potential attack vectors.\n"
+                     "Team Member Roles:\n"
+                     "* Recon: Build a comprehensive picture of the target to identify potential attack vectors, focused on port scanning.\n"
                      "* Enum: Actively probing the target to extract detailed information about its components, such as users, services, shares, or configurations\n"
                      "* Exploit: Attempts to actively breach the target system by leveraging vulnerabilities or weaknesses.\n"
                      "* PostEx: Actions after breaching a system, such as escalation of privileges, moving laterally or accessing sensitive data.\n"
@@ -65,6 +65,32 @@ def get_output_format_prompt_template():
     user_template = ("<TOOL OUTPUT>\n"
                      "{tool_output}\n"
                      "</TOOL OUTPUT>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )
+
+def get_enum_prompt_template():
+    """Enumeration Agent prompt template to support tool calling
+    Takes Tools, Task, Context"""
+    system_template = ("You are an expert cybersecurity agent specializing in enumerating networks and computers, your primary objective is to complete <TASKS> defined below using the provided tooling and <CONTEXT> to provide answers. If the answer is not in the <CONTEXT>, use the provided <TOOLS> to obtain the information to answer the question.\n"
+                       "Responses for answering questions should follow this form:\n"
+                       "QUESTION: The question being addressed\n"
+                       "ANSWER: The answer to the question\n"
+                       "\n"
+                       "Responses for calling tools for additional information should follow this form:"
+                       "ACTION: The action to be taken\n"
+                       "REASON: The reason for the action\n")
+
+    user_template = ("<TASKS>\n"
+                     "{tasks}\n"
+                     "</TASKS>\n"
+                     "<CONTEXT>\n"
+                     "{context}\n"
+                     "</CONTEXT>\n")
 
     return ChatPromptTemplate(
         [

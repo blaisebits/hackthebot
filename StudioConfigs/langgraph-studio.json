@@ -2,7 +2,8 @@
   "dependencies": ["."],
   "graphs": {
     "Stinger": "./agents/StingerAgent.py:stinger_graph",
-    "Recon": "./agents/ReconAgent.py:recon_graph"
+    "Recon": "./agents/ReconAgent.py:recon_graph",
+    "Enum": "./agents/EnumAgent.py:enum_graph"
   },
   "env": ".env"
 }
