@@ -58,6 +58,7 @@ def get_stinger_prompt_template():
 def get_output_format_prompt_template():
     """Prompt for selecting appropriate output parser based on the tool output"""
     system_template = ("Examine the tool output and select an appropriate output formatting tool.\n"
+                       "If no formatting tool matches, select `StandardOutputFormat`.\n"
                        "Responses should be in the form:\n"
                        "ACTION: The action to be taken\n"
                        "REASON: The reason for the action\n")

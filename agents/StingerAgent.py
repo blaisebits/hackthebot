@@ -32,7 +32,7 @@ def user_input(state: StingerState):
 """Called after User input to format initial task list"""
 def initializer(state: StingerState):
     raw_tasks = state["messages"][-1].content
-    stinger_context = state["context"]
+    stinger_context = state["context"] + "\n The `output` and `tool` parameters should be blank for this query."
 
     stinger_prompt_template = get_stinger_prompt_template()
     stinger_prompt = stinger_prompt_template.invoke(
@@ -51,23 +51,29 @@ def initializer(state: StingerState):
     for task in response["tasks"]:
         for agent in agents:
             if task["agent"] == agent:
+                # task["output"] =   # Blank the output for initial creation
+                # task["tool"] = ""  # Blank the output for initial creation
                 ordered_task_list.append(task)
-    return {"tasks": ordered_task_list}
+    return {
+        "tasks": ordered_task_list
+    }
 
 
 def stinger_agent(state: StingerState):
     goto = ""
     agent_message = ""
-    for task in state["tasks"]:
+    for index, task in enumerate(state["tasks"]):
         if task["status"] == "new":
             goto = task["agent"]
+            state["current_task"] = index
             agent_message = [AIMessage(f"StingerAgent: Passing to {goto}")]
             break
     return Command(
         goto=goto,
         update={
             "next": goto,
-            "messages": agent_message
+            "messages": agent_message,
+            "current_task": state["current_task"]
         }
     )
 
@@ -100,6 +106,7 @@ if __name__ == "__main__":
         hosts= {},
         tasks= [],
         context= "",
+        current_task= -1,
         next= ""
     )
 
@@ -110,7 +117,7 @@ if __name__ == "__main__":
         "* Use GoBuster to find hidden directories.\n"  #ENUMERATION
     )
     testing_state["messages"] = add_messages(testing_state["messages"], test_message)
-    testing_state["context"] = "Target machine IP Address is 10.10.127.77"
+    testing_state["context"] = "Target machine IP Address is 10.10.243.47"
 
     stinger_agent(testing_state)
     # stinger_graph.invoke(base_state)
@@ -124,7 +131,8 @@ if __name__ == "__main__":
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.127.77",
+#   "context": "Target machine IP Address is 10.10.243.47",
+#   "current_task": -1,
 #   "next": ""
 # }
 
@@ -135,5 +143,6 @@ if __name__ == "__main__":
 #   "hosts": {},
 #   "tasks": [],
 #   "context": "",
+#   "current_task": -1
 #   "next": ""
 # }

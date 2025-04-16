@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class NmapOutputFormat(BaseModel):
     ip_address: str = Field(description="The host ip address")
-    hostname: str = Field(description="The target hostname")
+    hostname: str = Field(description="The target DNS hostname")
     ports: List[str] = Field(description="The port number")
     states: List[str] = Field(description="Define if the port is open, closed, or filtered")
     services: List[str] = Field(description="The service running on the associated port")
@@ -14,9 +14,19 @@ class NmapOutputFormat(BaseModel):
 
 class GoBusterOutputFormat(BaseModel):
     target: str = Field(description="Target scanned")
+    ip_address: str = Field(description="The host ip address")
+    hostname: str = Field(description="The target DNS hostname")
     output: List[str] = Field(description="List of discovered directories")
+
+class StandardOutputFormat(BaseModel):
+    target: str = Field(description="Target scanned")
+    ip_address: str = Field(description="The host ip address")
+    hostname: str = Field(description="The target DNS hostname")
+    output: List[str] = Field(description="List of discovered directories")
+
 
 tool_parsers = [
     NmapOutputFormat,
-    GoBusterOutputFormat
+    GoBusterOutputFormat,
+    StandardOutputFormat
 ]

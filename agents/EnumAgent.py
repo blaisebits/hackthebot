@@ -9,7 +9,7 @@ from langgraph.types import Command
 from utils.Configuration import Configuration
 from utils.LangChain_RoboPages import RoboPages
 from utils.OutputFormatters import tool_parsers
-from utils.Prompts import get_output_format_prompt_template
+from utils.Prompts import get_output_format_prompt_template, get_enum_prompt_template
 from utils.States import StingerState, Host, Port
 
 rb = RoboPages()
@@ -19,25 +19,39 @@ enum_tool_node = ToolNode(rb_tools)
 
 ## STILL STUB CODE DUMBASS!
 def enum_agent(state: StingerState):
+    llm_with_tools = llm.bind_tools(rb_tools)
+    tasks = state["tasks"]
+    context = state["context"]
     task_call = None
 
-    for index, task in enumerate(state["tasks"]):
+    for index, task in enumerate(tasks):
         if task["agent"] == "Enum":
             if task["status"] == "new": # The task hasn't been executed
+                task_call = task["task"]
                 state["tasks"][index]["status"] = "working" # Mark task as executed
-                # task_call = task["task"]
-                # break # stopping at first 'new' task
+                state["current_task"] = index
+                break # stopping at first 'new' task
 
-    result = AIMessage("EnumAgent: No Tasks were marked for execution. Passing to Stinger.")
+    if task_call is not None:
+        enum_prompt_template = get_enum_prompt_template()
+        enum_prompt = enum_prompt_template.invoke(
+            {
+                "tasks": task_call,
+                "context": context
+            }
+        )
 
-    return Command(
-        goto="StingerAgent",
-        update={
-            "messages": result,
-            "tasks": state["tasks"]
-        },
-        graph=Command.PARENT
-    )
+        response = llm_with_tools.invoke(enum_prompt)
+        state["tasks"][state["current_task"]]["tool"] = response.tool_calls[0]["name"]
+        return {
+            "messages": [response],
+            "tasks": state["tasks"],
+            "current_task": state["current_task"]
+        }
+    else:
+        # return no tasks response
+        return {"messages": [AIMessage("ReconAgent: No Tasks were marked for execution. Passing to Stinger.")]}
+
 
 def enum_router(state: StingerState):
     last_message = state["messages"][-1]
@@ -72,10 +86,13 @@ def output_formatter(state: StingerState):
 
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
+        state["tasks"][state["current_task"]]["output"] = output
+        state["tasks"][state["current_task"]]["status"] = "completed"
 
     return {
         "messages": state["messages"],
-        "hosts": state["hosts"]
+        "hosts": state["hosts"],
+        "tasks": state["tasks"]
     }
 
 
@@ -92,11 +109,13 @@ enum_workflow = StateGraph(StingerState)
 enum_workflow.add_edge(START, "EnumAgent")
 enum_workflow.add_node("EnumAgent", enum_agent)
 
-# enum_workflow.add_conditional_edges("EnumAgent", enum_router, ["EnumToolNode", "EnumHandoff"])
-# enum_workflow.add_node("EnumToolNode", enum_tool_node)
-# enum_workflow.add_node("EnumHandoff", handoff)
-#
-# enum_workflow.add_edge("EnumToolNode", "OutputFormatter")
-# enum_workflow.add_node("OutputFormatter", output_formatter)
+enum_workflow.add_conditional_edges("EnumAgent", enum_router, ["EnumToolNode", "EnumHandoff"])
+enum_workflow.add_node("EnumToolNode", enum_tool_node)
+enum_workflow.add_node("EnumHandoff", handoff)
+
+enum_workflow.add_edge("EnumToolNode", "OutputFormatter")
+enum_workflow.add_node("OutputFormatter", output_formatter)
+
+enum_workflow.add_edge("OutputFormatter", "EnumAgent")
 
 enum_graph = enum_workflow.compile()

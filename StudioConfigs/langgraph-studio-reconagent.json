@@ -1,7 +1,0 @@
-{
-  "dependencies": ["."],
-  "graphs": {
-    "Recon": "./agents/ReconAgent.py:recon_graph"
-  },
-  "env": ".env"
-}

@@ -26,7 +26,8 @@ def recon_agent(state: StingerState):
         if task["agent"] == "Recon":
             if task["status"] == "new": # The task hasn't been executed
                 task_call = task["task"]
-                state["tasks"][index]["status"] = "working" # Mark task as executed
+                state["tasks"][index]["status"] = "working" # Mark task as executing
+                state["current_task"] = index
                 break # stopping at first 'new' task
 
     if task_call is not None:
@@ -39,9 +40,12 @@ def recon_agent(state: StingerState):
         )
 
         response = llm_with_tools.invoke(recon_prompt)
+        state["tasks"][state["current_task"]]["tool"] = response.tool_calls[0]["name"]
+
         return {
             "messages": [response],
-            "tasks": state["tasks"]
+            "tasks": state["tasks"],
+            "current_task": state["current_task"]
         }
     else:
         # return no tasks response
@@ -91,10 +95,13 @@ def output_formatter(state: StingerState):
 
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
+        state["tasks"][ state["current_task"] ]["output"] = output
+        state["tasks"][state["current_task"]]["status"] = "completed"
 
     return {
         "messages": state["messages"],
-        "hosts": state["hosts"]
+        "hosts": state["hosts"],
+        "tasks": state["tasks"]
     }
 
 def handoff(state: StingerState):
