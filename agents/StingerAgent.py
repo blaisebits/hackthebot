@@ -1,3 +1,5 @@
+from typing import Literal
+
 from langchain_core.messages import HumanMessage, AIMessage
 
 from langgraph.graph import START, END, add_messages, StateGraph
@@ -59,7 +61,7 @@ def initializer(state: StingerState):
     }
 
 
-def stinger_agent(state: StingerState):
+def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum"]]:
     goto = ""
     agent_message = ""
     for index, task in enumerate(state["tasks"]):
@@ -131,7 +133,7 @@ if __name__ == "__main__":
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.243.47",
+#   "context": "Target machine IP Address is 10.10.161.134",
 #   "current_task": -1,
 #   "next": ""
 # }

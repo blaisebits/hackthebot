@@ -1,11 +1,10 @@
 # TODO List!
 ## Stinger
-* [ ] Add checking completed tasks, if completed set task status to completed
-* [ ] Expand `Task` structure to capture the out of tools or answers to questions
+* [x] Expand `Task` structure to capture the out of tools or answers to questions
+* [ ] Add `reflection` node/graph to validate if the task we completed correctly.
 
 ## Enum
-* [ ] Finish implementing logic checks in `enum_agent`
-* [ ] Complete graph
+* [x] Complete graph
 
 # Potential future issues
 * Structured NMAP output for scanning multiple hosts
