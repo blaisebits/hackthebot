@@ -1,14 +1,10 @@
-from typing import Annotated, List, Dict, Tuple, Literal, Optional
+from typing import Annotated, List, Dict, Literal, Optional
 from typing_extensions import TypedDict
-
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
 
-from utils.Configuration import Config
-from utils.OutputFormatters import NmapOutputFormat
-
-"""Single port on a network entity"""
 class Port(TypedDict):
+    """Single port on a network entity"""
     port: int
     protocol: str
     state: str
@@ -19,8 +15,12 @@ class Port(TypedDict):
 class Host(TypedDict):
     """Single network entity"""
     ip_address: str
-    hostname: Optional[str]
+    hostname: List[str]
     ports: Dict[str, Port] # example {"22/tcp":{ Port({..} }
+
+class TaskAnswer(TypedDict):
+    question: str
+    answer: str
 
 class Task(TypedDict):
     """Single Task entity for agents to process.
@@ -28,13 +28,14 @@ class Task(TypedDict):
      - new: initially created task
      - working: currently being executed by the agent
      - completed: Agent work completed
-     - validated: Stinger has validated the task was sufficiently completed
+     - validated: Agent has validated the task was sufficiently completed
     """
     task: str
     status: Literal["new", "working", "completed", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
-    tool: str # The tool used to complete the task
-    output: Dict
+    tool: List[str] # The tool(s) used to complete the task
+    output: List[Dict]
+    answer: Optional[TaskAnswer]
 
 class TaskList(TypedDict):
     """Used for structured output"""

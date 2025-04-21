@@ -8,7 +8,7 @@ from langgraph.types import Command
 from agents.EnumAgent import enum_graph
 from agents.ReconAgent import recon_graph
 from utils.Configuration import Configuration
-from utils.Prompts import get_stinger_prompt_template
+from utils.Prompts import get_tasklist_prompt_template
 from utils.States import StingerState, TaskList
 
 agents = ["Recon",
@@ -36,8 +36,8 @@ def initializer(state: StingerState):
     raw_tasks = state["messages"][-1].content
     stinger_context = state["context"] + "\n The `output` and `tool` parameters should be blank for this query."
 
-    stinger_prompt_template = get_stinger_prompt_template()
-    stinger_prompt = stinger_prompt_template.invoke(
+    tasklist_prompt_template = get_tasklist_prompt_template()
+    tasklist_prompt = tasklist_prompt_template.invoke(
         {
             "tasks": raw_tasks,
             "members": agents,
@@ -45,7 +45,7 @@ def initializer(state: StingerState):
         }
     )
     llm_with_structured_output = llm.with_structured_output(TaskList)
-    response = llm_with_structured_output.invoke(stinger_prompt)
+    response = llm_with_structured_output.invoke(tasklist_prompt)
     # print(response)
 
     # Checking for and ordering task list by agent: Recon -> Enum -> Exploit -> PostEx
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         "* Scan the target, how many ports are open?\n" #RECON
         "* What version of Apache is running?\n"        #ENUMERATION
         "* What service is running on port 22?\n"       #ENUMERATION
-        "* Use GoBuster to find hidden directories.\n"  #ENUMERATION
+        "* Use GoBuster to find hidden directories. What is the hidden directory?\n"  #ENUMERATION
     )
     testing_state["messages"] = add_messages(testing_state["messages"], test_message)
     testing_state["context"] = "Target machine IP Address is 10.10.243.47"
@@ -128,12 +128,12 @@ if __name__ == "__main__":
 # {
 #   "messages": [
 #     {
-#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories.",
+#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. . What is the hidden directory?",
 #       "type": "human"
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.161.134",
+#   "context": "Target machine IP Address is 10.10.113.219",
 #   "current_task": -1,
 #   "next": ""
 # }

@@ -1,13 +1,13 @@
 from langchain_core.messages import AIMessage, HumanMessage
-from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.graph import StateGraph, START, add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
 
 from utils.Configuration import Configuration
 from utils.LangChain_RoboPages import RoboPages
-from utils.OutputFormatters import tool_parsers
-from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template
-from utils.States import StingerState, Host, Port
+from utils.OutputFormatters import tool_parsers, TaskAnswer
+from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
+from utils.States import StingerState, Host
 
 rb = RoboPages()
 rb_tools = rb.get_tools()
@@ -16,17 +16,35 @@ recon_tool_node = ToolNode(rb_tools)
 
 def recon_agent(state: StingerState):
     llm_with_tools = llm.bind_tools(rb_tools)
-    tasks = state["tasks"]
-    context = state["context"]
+    context = ""
     task_call = None
 
-    for index, task in enumerate(tasks):
-        if task["agent"] == "Recon":
-            if task["status"] == "new": # The task hasn't been executed
-                task_call = task["task"]
-                state["tasks"][index]["status"] = "working" # Mark task as executing
-                state["current_task"] = index
-                break # stopping at first 'new' task
+    current_task = state["tasks"][state["current_task"]]
+    is_new_task = current_task["status"] == "new"
+    is_working_task = current_task["status"] == "working"
+    is_validated_task = current_task["status"] == "validated"
+    is_assigned_recon = current_task["agent"] = "Recon"
+
+    if is_assigned_recon and not is_validated_task:
+        task_call = current_task["task"]
+        if is_working_task:
+            context = [
+                state["context"],
+                current_task["output"]
+            ]
+        if is_new_task:
+            state["tasks"][ state["current_task" ]]["status"] = "working"
+            context = [
+                state["context"]
+            ]
+    else:
+        for index, task in enumerate(state["tasks"]):  #Find the first 'new' task
+            if task["agent"] == "Recon":
+                if task["status"] == "new":  # The task hasn't been executed
+                    task_call = task["task"]
+                    state["tasks"][index]["status"] = "working" # Mark task as executing
+                    state["current_task"] = index
+                    break # stopping at first 'new' task
 
     if task_call is not None:
         recon_prompt_template = get_recon_prompt_template()
@@ -38,7 +56,7 @@ def recon_agent(state: StingerState):
         )
 
         response = llm_with_tools.invoke(recon_prompt)
-        state["tasks"][state["current_task"]]["tool"] = response.tool_calls[0]["name"]
+        state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
 
         return {
             "messages": [response],
@@ -76,31 +94,53 @@ def output_formatter(state: StingerState):
 
         target_host = Host(
             ip_address= output["ip_address"],
-            hostname= output["hostname"],
+            hostname= [output["hostname"]],
             ports= {}
         )
 
-        for index, port in enumerate(output["ports"]):
-            port_data = port.split('/') #splitting data e.g. 22/tcp
-            target_host["ports"][port] = Port(
-                    port= port_data[0],
-                    protocol= port_data[1],
-                    state= output["states"][index],
-                    service= output["services"][index],
-                    version=output["versions"][index],
-                    scripts=output["scripts"][index]
-                )
-
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
-        state["tasks"][ state["current_task"] ]["output"] = output
-        state["tasks"][state["current_task"]]["status"] = "completed"
+        state["tasks"][ state["current_task"] ]["output"].append(output)
+        # state["tasks"][ state["current_task"] ]["status"] = "completed"
 
-    return {
-        "messages": state["messages"],
-        "hosts": state["hosts"],
-        "tasks": state["tasks"]
-    }
+        return {
+            "messages": state["messages"],
+            "hosts": state["hosts"],
+            "tasks": state["tasks"]
+        }
+    else:
+        return {
+            "messages": [AIMessage("ReconOutPutFormatter: No tool output, passing to ReconAgent.")]
+        }
+
+
+def validator(state: StingerState):
+    validator_prompt_template = get_task_answer_prompt_template()
+    validator_prompt = validator_prompt_template.invoke(
+        {
+            "task": state["tasks"][ state["current_task"] ]["task"],
+            "tool_output": state["tasks"][ state["current_task"] ]["output"]
+        }
+    )
+
+    llm_with_structured_output = llm.with_structured_output(TaskAnswer)
+    response = llm_with_structured_output.invoke(validator_prompt)
+
+    if response.answer == "":    # Check if task needs further processing from blank answer
+        return {
+            "messages": [AIMessage("ReconValidator: Task unanswered, passing to ReconAgent.")]
+        }
+    else:
+        state["tasks"][ state["current_task"] ]["status"] = "validated"
+        state["tasks"][ state["current_task"] ]["answer"] = response
+
+        return {
+            "messages": [AIMessage(f"ReconValidator: Task {state["current_task"]} validated.\n"
+                                   f"Question: {response.question}\n"
+                                   f"Answer: {response.answer}\n")],
+            "tasks": state["tasks"]
+        }
+
 
 def handoff(state: StingerState):
     """Hand off back to stinger"""
@@ -120,10 +160,13 @@ recon_workflow.add_conditional_edges("ReconAgent", recon_router, ["ReconToolNode
 recon_workflow.add_node("ReconToolNode", recon_tool_node)
 recon_workflow.add_node("ReconHandoff", handoff)
 
-recon_workflow.add_edge("ReconToolNode", "OutputFormatter")
-recon_workflow.add_node("OutputFormatter", output_formatter)
+recon_workflow.add_edge("ReconToolNode", "ReconOutputFormatter")
+recon_workflow.add_node("ReconOutputFormatter", output_formatter)
 
-recon_workflow.add_edge("OutputFormatter", "ReconAgent")
+recon_workflow.add_edge("ReconOutputFormatter", "ReconValidator")
+recon_workflow.add_node("ReconValidator", validator)
+
+recon_workflow.add_edge("ReconValidator", "ReconAgent")
 
 recon_graph = recon_workflow.compile()
 

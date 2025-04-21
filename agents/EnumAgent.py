@@ -42,7 +42,7 @@ def enum_agent(state: StingerState):
         )
 
         response = llm_with_tools.invoke(enum_prompt)
-        state["tasks"][state["current_task"]]["tool"] = response.tool_calls[0]["name"]
+        state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
         return {
             "messages": [response],
             "tasks": state["tasks"],
@@ -80,13 +80,13 @@ def output_formatter(state: StingerState):
 
         target_host = Host(
             ip_address= output["ip_address"],
-            hostname= output["hostname"],
+            hostname= [output["hostname"]],
             ports= {}
         )
 
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
-        state["tasks"][state["current_task"]]["output"] = output
+        state["tasks"][state["current_task"]]["output"].append(output)
         state["tasks"][state["current_task"]]["status"] = "completed"
 
     return {

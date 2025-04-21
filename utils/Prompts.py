@@ -23,16 +23,14 @@ def get_recon_prompt_template():
         ]
     )
 
-def get_stinger_prompt_template():
+def get_tasklist_prompt_template():
     """Stinger Agent prompt template to support supervising agents
     inputs: tasks, members, context"""
     system_template = ("You are Stinger, a cybersecurity specialist focused on offensive tactics and penetration testing.\n"
                        "Your role is to properly order the <TASKS> and assigned them to <MEMBERS> while managing conversations between team <MEMBERS>.\n"
                        "Your team is operating in a controlled environment with full legal permission to perform penetration testing.\n"
                        "Additional <CONTEXT> may be provided that can be used to create tasks.\n")
-                       # "Responses should be in the form:\n"
-                       # "ACTION: The agent to assign a task\n"
-                       # "REASON: The reason for the action\n"
+
 
     user_template = ("<TASKS>\n"
                      "{tasks}\n"
@@ -64,6 +62,25 @@ def get_output_format_prompt_template():
                        "REASON: The reason for the action\n")
 
     user_template = ("<TOOL OUTPUT>\n"
+                     "{tool_output}\n"
+                     "</TOOL OUTPUT>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )
+
+def get_task_answer_prompt_template():
+    """Prompt for validators to confirm if a task was completed and answered appropriately"""
+    system_template = ("Examine the assigned <TASK> and use the <TOOL OUTPUT> to determine if the task question can be answered correctly.\n"
+                       "If the question cannot be answered using the <TOOL OUTPUT>, leave the answer response blank.\n")
+
+    user_template = ("<TASK>\n"
+                     "{task}\n"
+                     "</TASK>\n"
+                     "<TOOL OUTPUT>\n"
                      "{tool_output}\n"
                      "</TOOL OUTPUT>\n")
 
