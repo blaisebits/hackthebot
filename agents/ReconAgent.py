@@ -34,9 +34,7 @@ def recon_agent(state: StingerState):
             ]
         if is_new_task:
             state["tasks"][ state["current_task" ]]["status"] = "working"
-            context = [
-                state["context"]
-            ]
+            context = state["context"]
     else:
         for index, task in enumerate(state["tasks"]):  #Find the first 'new' task
             if task["agent"] == "Recon":
@@ -44,6 +42,7 @@ def recon_agent(state: StingerState):
                     task_call = task["task"]
                     state["tasks"][index]["status"] = "working" # Mark task as executing
                     state["current_task"] = index
+                    context = state["context"]
                     break # stopping at first 'new' task
 
     if task_call is not None:
