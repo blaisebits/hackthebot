@@ -21,6 +21,7 @@ def enum_agent(state: StingerState):
     llm_with_tools = llm.bind_tools(rb_tools)
     context = ""
     task_call = None
+    agent_messages = []
 
     current_task = state["tasks"][state["current_task"]]
     is_new_task = current_task["status"] == "new"
@@ -28,6 +29,7 @@ def enum_agent(state: StingerState):
     is_validated_task = current_task["status"] == "validated"
     is_assigned_enum = current_task["agent"] = "Enum"
 
+    ## Check the CURRENT TASK status and take action
     if is_assigned_enum and not is_validated_task:
         task_call = current_task["task"]
         if is_working_task:
@@ -35,9 +37,11 @@ def enum_agent(state: StingerState):
                 state["context"],
                 current_task["output"]
             ]
+            agent_messages.append(AIMessage(f"EnumAgent: Reworking task {state["current_task"]}: \"{task_call}\"."))
         if is_new_task:
             state["tasks"][state["current_task"]]["status"] = "working"
             context = state["context"]
+            agent_messages.append(AIMessage(f"EnumAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
     else:
         for index, task in enumerate(state["tasks"]):  # Find the first 'new' task
             if task["agent"] == "Enum":
@@ -46,22 +50,25 @@ def enum_agent(state: StingerState):
                     state["tasks"][index]["status"] = "working"  # Mark task as executing
                     state["current_task"] = index
                     context = state["context"]
+                    agent_messages.append(
+                        AIMessage(f"EnumAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
                     break  # stopping at first 'new' task
 
     if task_call is not None:
-        recon_prompt_template = get_enum_prompt_template()
-        recon_prompt = recon_prompt_template.invoke(
+        enum_prompt_template = get_enum_prompt_template()
+        enum_prompt = enum_prompt_template.invoke(
             {
                 "tasks": task_call,
                 "context": context
             }
         )
 
-        response = llm_with_tools.invoke(recon_prompt)
+        response = llm_with_tools.invoke(enum_prompt)
         state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
+        agent_messages.append(response)
 
         return {
-            "messages": [response],
+            "messages": agent_messages,
             "tasks": state["tasks"],
             "current_task": state["current_task"]
         }
