@@ -10,6 +10,7 @@ class Port(TypedDict):
     state: str
     service: str
     version: str
+    cpe: List[str]
     scripts: List[str]
 
 class Host(TypedDict):
@@ -34,7 +35,7 @@ class Task(TypedDict):
     status: Literal["new", "working", "completed", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
     tool: List[str] # The tool(s) used to complete the task
-    output: List[Dict]
+    output: List[Dict] # Raw tool call output
     answer: Optional[TaskAnswer]
 
 class TaskList(TypedDict):

@@ -18,6 +18,7 @@ def recon_agent(state: StingerState):
     llm_with_tools = llm.bind_tools(rb_tools)
     context = ""
     task_call = None
+    agent_messages = []
 
     current_task = state["tasks"][state["current_task"]]
     is_new_task = current_task["status"] == "new"
@@ -25,6 +26,7 @@ def recon_agent(state: StingerState):
     is_validated_task = current_task["status"] == "validated"
     is_assigned_recon = current_task["agent"] = "Recon"
 
+    ## Check the CURRENT TASK status and take action
     if is_assigned_recon and not is_validated_task:
         task_call = current_task["task"]
         if is_working_task:
@@ -32,9 +34,12 @@ def recon_agent(state: StingerState):
                 state["context"],
                 current_task["output"]
             ]
+            agent_messages.append(AIMessage(f"ReconAgent: Reworking task {state["current_task"]}: \"{task_call}\"."))
         if is_new_task:
             state["tasks"][ state["current_task" ]]["status"] = "working"
             context = state["context"]
+            agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
+    ## Finding a new task to set as current and take action
     else:
         for index, task in enumerate(state["tasks"]):  #Find the first 'new' task
             if task["agent"] == "Recon":
@@ -43,6 +48,7 @@ def recon_agent(state: StingerState):
                     state["tasks"][index]["status"] = "working" # Mark task as executing
                     state["current_task"] = index
                     context = state["context"]
+                    agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
                     break # stopping at first 'new' task
 
     if task_call is not None:
@@ -56,9 +62,9 @@ def recon_agent(state: StingerState):
 
         response = llm_with_tools.invoke(recon_prompt)
         state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
-
+        agent_messages.append(response)
         return {
-            "messages": [response],
+            "messages": agent_messages,
             "tasks": state["tasks"],
             "current_task": state["current_task"]
         }
@@ -100,7 +106,6 @@ def output_formatter(state: StingerState):
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
         state["tasks"][ state["current_task"] ]["output"].append(output)
-        # state["tasks"][ state["current_task"] ]["status"] = "completed"
 
         return {
             "messages": state["messages"],
@@ -184,13 +189,29 @@ if __name__ == "__main__":
     recon_graph.invoke(test_state, {"recursion_limit": 6})
 
 # {
-#   "tasks": [{"task":"Find common open ports on 127.0.0.1.","status":"new","agent":"Recon"}],
-#   "hosts": {},
-#   "context": "",
 #   "messages": [
 #     {
-#       "content": "Find common open ports on 127.0.0.1.",
+#       "content": "foobar",
 #       "type": "human"
 #     }
-#   ]
+#   ],
+#   "hosts": {
+#     "a": "b"
+#   },
+#   "tasks": [
+#     {
+#       "task": "Find common open ports on 127.0.0.1.",
+#       "status": "New",
+#       "recon": "Recon",
+#       "tool": [],
+#       "output": [],
+#       "answer": {
+#         "question": "",
+#         "answer": ""
+#       }
+#     }
+#   ],
+#   "current_task": 0,
+#   "context": "",
+#   "next": ""
 # }
