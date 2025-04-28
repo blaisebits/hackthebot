@@ -4,6 +4,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
 
 from utils.Configuration import Configuration
+from utils.HostUpdate import host_update
 from utils.LangChain_RoboPages import RoboPages
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
@@ -16,9 +17,9 @@ recon_tool_node = ToolNode(rb_tools)
 
 def recon_agent(state: StingerState):
     llm_with_tools = llm.bind_tools(rb_tools)
-    context = ""
-    task_call = None
+    task_str = None
     agent_messages = []
+    context = state["context"]
 
     current_task = state["tasks"][state["current_task"]]
     is_new_task = current_task["status"] == "new"
@@ -28,34 +29,33 @@ def recon_agent(state: StingerState):
 
     ## Check the CURRENT TASK status and take action
     if is_assigned_recon and not is_validated_task:
-        task_call = current_task["task"]
+        task_str = current_task["task"]
+        target_ip = current_task["target_ip"]
         if is_working_task:
-            context = [
-                state["context"],
-                current_task["output"]
-            ]
-            agent_messages.append(AIMessage(f"ReconAgent: Reworking task {state["current_task"]}: \"{task_call}\"."))
+            context.append( '\n'.join(str(state["hosts"][target_ip])) )
+            agent_messages.append(AIMessage(f"ReconAgent: Reworking task {state["current_task"]}: \"{task_str}\"."))
         if is_new_task:
             state["tasks"][ state["current_task" ]]["status"] = "working"
-            context = state["context"]
-            agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
+            context.append('\n'.join(str(state["hosts"][target_ip])))
+            agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
     ## Finding a new task to set as current and take action
     else:
         for index, task in enumerate(state["tasks"]):  #Find the first 'new' task
             if task["agent"] == "Recon":
                 if task["status"] == "new":  # The task hasn't been executed
-                    task_call = task["task"]
+                    task_str = task["task"]
+                    target_ip = task["target_ip"]
                     state["tasks"][index]["status"] = "working" # Mark task as executing
                     state["current_task"] = index
-                    context = state["context"]
-                    agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_call}\"."))
+                    context.append('\n'.join(str(state["hosts"][target_ip])))
+                    agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
                     break # stopping at first 'new' task
 
-    if task_call is not None:
+    if task_str is not None:
         recon_prompt_template = get_recon_prompt_template()
         recon_prompt = recon_prompt_template.invoke(
             {
-                "tasks": task_call,
+                "tasks": task_str,
                 "context": context
             }
         )
@@ -104,7 +104,7 @@ def output_formatter(state: StingerState):
         )
 
         #commit host data to the state table
-        state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
+        state["hosts"][target_host["ip_address"]] = target_host
         state["tasks"][ state["current_task"] ]["output"].append(output)
 
         return {
@@ -167,7 +167,10 @@ recon_workflow.add_node("ReconHandoff", handoff)
 recon_workflow.add_edge("ReconToolNode", "ReconOutputFormatter")
 recon_workflow.add_node("ReconOutputFormatter", output_formatter)
 
-recon_workflow.add_edge("ReconOutputFormatter", "ReconValidator")
+recon_workflow.add_edge("ReconOutputFormatter", "HostUpdate")
+recon_workflow.add_node("HostUpdate", host_update)
+
+recon_workflow.add_edge("HostUpdate", "ReconValidator")
 recon_workflow.add_node("ReconValidator", validator)
 
 recon_workflow.add_edge("ReconValidator", "ReconAgent")
@@ -201,6 +204,7 @@ if __name__ == "__main__":
 #   "tasks": [
 #     {
 #       "task": "Find common open ports on 127.0.0.1.",
+#       "target_ip": "127.0.0.1",
 #       "status": "New",
 #       "recon": "Recon",
 #       "tool": [],

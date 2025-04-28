@@ -117,3 +117,25 @@ def get_enum_prompt_template():
             ("user", user_template)
         ]
     )
+
+def get_update_host_prompt_template():
+    """Host updates and merging template
+    inputs: tool_output, host"""
+    system_template = ("You are a Data Manager tasked with merging new information from <TOOL_OUTPUT> into a <HOST> object.\n"
+                       "The primary key for the host is the `ip_address`.\n"
+                       "The `hostname` list should contain only fully unique entries.\n"
+                       "The <TOOL_OUTPUT> data should be extracted and used to update or fill in blank `Port` entries.\n")
+
+    user_template = ("<TOOL_OUTPUT>\n"
+                     "{tool_output}\n"
+                     "</TOOL_OUTPUT>\n"
+                     "<HOST>\n"
+                     "{host}\n"
+                     "</HOST>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )

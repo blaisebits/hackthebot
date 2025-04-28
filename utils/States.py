@@ -24,19 +24,14 @@ class TaskAnswer(TypedDict):
     answer: str
 
 class Task(TypedDict):
-    """Single Task entity for agents to process.
-    Status indicators:
-     - new: initially created task
-     - working: currently being executed by the agent
-     - completed: Agent work completed
-     - validated: Agent has validated the task was sufficiently completed
-    """
+    """Single Task entity for agents to process."""
     task: str
-    status: Literal["new", "working", "completed", "validated"]
+    status: Literal["new", "working", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
     tool: List[str] # The tool(s) used to complete the task
-    output: List[Dict] # Raw tool call output
-    answer: Optional[TaskAnswer]
+    output: List[Dict] # output_formatted tool call output
+    target_ip: str # The target host IP address
+    answer: Optional[TaskAnswer] # Answer for Task
 
 class TaskList(TypedDict):
     """Used for structured output"""
@@ -44,10 +39,10 @@ class TaskList(TypedDict):
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: Dict[str, Host] # e.g. hostname(1.2.3.4)
+    hosts: Dict[str, Host] # e.g. 192.168.3.4
     tasks: List[Task]
     current_task: int  # points to the list index for tasks field
-    context: str
+    context: List[str|Host]
     next: str
 
 class StingerRouter(TypedDict):

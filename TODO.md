@@ -6,11 +6,15 @@
 
 ## Recon
 * [x] Add `validation` node/graph to validate if the task we completed correctly.
+* [ ] Add pre-validation loop to check for answers in host file
+  * [x] Update host data merging 
 
 
 ## Enum
-* [ ] Copy addition AI logging messages from ReconAgent to EnumAgent
+* [x] Copy additional AI logging messages from ReconAgent to EnumAgent
 * [x] Add `validation` node/graph to validate if the task we completed correctly.
+* [ ] Add pre-validation loop to check for answers in host file
+  * [x] Update host data merging
 
 
 ## Overall
@@ -19,5 +23,5 @@
 
 
 # Potential future issues
-* Expand for multi-system CTFs
+* Handling for multi-system CTFs
 * 

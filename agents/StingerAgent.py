@@ -34,7 +34,8 @@ def user_input(state: StingerState):
 """Called after User input to format initial task list"""
 def initializer(state: StingerState):
     raw_tasks = state["messages"][-1].content
-    stinger_context = state["context"] + "\n The `output` and `tool` parameters should be blank for this query."
+    #Ad Hoc fix for initializing the first tasks from UserInput
+    stinger_context = state["context"] + ["\n The `output`, `tool`, and `answer` parameters should be blank for this query."]
 
     tasklist_prompt_template = get_tasklist_prompt_template()
     tasklist_prompt = tasklist_prompt_template.invoke(
@@ -46,15 +47,12 @@ def initializer(state: StingerState):
     )
     llm_with_structured_output = llm.with_structured_output(TaskList)
     response = llm_with_structured_output.invoke(tasklist_prompt)
-    # print(response)
 
     # Checking for and ordering task list by agent: Recon -> Enum -> Exploit -> PostEx
     ordered_task_list = []
     for task in response["tasks"]:
         for agent in agents:
             if task["agent"] == agent:
-                # task["output"] =   # Blank the output for initial creation
-                # task["tool"] = ""  # Blank the output for initial creation
                 ordered_task_list.append(task)
     return {
         "tasks": ordered_task_list

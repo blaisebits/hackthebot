@@ -111,7 +111,6 @@ def output_formatter(state: StingerState):
         #commit host data to the state table
         state["hosts"][f"{target_host["hostname"]}({target_host["ip_address"]})"] = target_host
         state["tasks"][state["current_task"]]["output"].append(output)
-        state["tasks"][state["current_task"]]["status"] = "completed"
 
     return {
         "messages": state["messages"],
