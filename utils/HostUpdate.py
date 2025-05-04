@@ -28,3 +28,10 @@ def host_update(state: StingerState):
         "hosts": state["hosts"],
         "messages": [AIMessage(f"HostUpdate: Updated host {current_task["target_ip"]} with scan data from {current_task["tool"][-1]}.")]
     }
+
+def get_stub_host(ip_address: str):
+    return Host(
+                ip_address=ip_address,
+                hostname=[],
+                ports={}
+            )

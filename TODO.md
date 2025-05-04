@@ -8,7 +8,7 @@
 * [x] Add `validation` node/graph to validate if the task we completed correctly.
 * [x] Add pre-validation loop to check for answers in host object
   * [x] Update host data merging
-* [ ] Update PreFlightCheck when task switching, check hunting for loop on line 54
+* [x] Update PreFlightCheck when task switching, check hunting for loop on line 54
 
 
 ## Enum
@@ -16,7 +16,9 @@
 * [x] Add `validation` node/graph to validate if the task we completed correctly.
 * [x] Add pre-validation loop to check for answers in host object
   * [x] Update host data merging
-* [ ] Update PreFlightCheck when task switching, check hunting for loop on line 54
+* [x] Update PreFlightCheck when task switching, check hunting for loop on line 54
+* [ ] investigate host table being purged, probably done during PFC
+  *  https://smith.langchain.com/public/1bca3a82-c6d7-412c-8da2-eb584cc6e3ad/r
 
 ## Overall
 * [ ] Check tasking data for potential answers before tool calls.
