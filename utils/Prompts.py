@@ -75,15 +75,15 @@ def get_output_format_prompt_template():
 
 def get_task_answer_prompt_template():
     """Prompt for validators to confirm if a task was completed and answered appropriately"""
-    system_template = ("Examine the assigned <TASK> and use the <TOOL OUTPUT> to determine if the task question can be answered correctly.\n"
-                       "If the question cannot be answered using the <TOOL OUTPUT>, leave the answer response blank.\n")
+    system_template = ("Examine the assigned <TASK> and use the <HOST DATA> to determine if the task question can be answered correctly.\n"
+                       "If the question cannot be answered using the <HOST DATA>, leave the answer response blank.\n")
 
     user_template = ("<TASK>\n"
                      "{task}\n"
                      "</TASK>\n"
-                     "<TOOL OUTPUT>\n"
-                     "{tool_output}\n"
-                     "</TOOL OUTPUT>\n")
+                     "<HOST DATA>\n"
+                     "{host_data}\n"
+                     "</HOST DATA>\n")
 
     return ChatPromptTemplate(
         [
@@ -100,7 +100,7 @@ def get_enum_prompt_template():
                        "QUESTION: The question being addressed\n"
                        "ANSWER: The answer to the question\n"
                        "\n"
-                       "Responses for calling tools for additional information should follow this form:"
+                       "Responses for calling tools for additional information should follow this form:\n"
                        "ACTION: The action to be taken\n"
                        "REASON: The reason for the action\n")
 

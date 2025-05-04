@@ -35,7 +35,7 @@ def user_input(state: StingerState):
 def initializer(state: StingerState):
     raw_tasks = state["messages"][-1].content
     #Ad Hoc fix for initializing the first tasks from UserInput
-    stinger_context = state["context"] + ["\n The `output`, `tool`, and `answer` parameters should be blank for this query."]
+    stinger_context = state["context"] + "\n The `output`, `tool`, and `answer` parameters should be blank, and the `preflightcheck` should be false."
 
     tasklist_prompt_template = get_tasklist_prompt_template()
     tasklist_prompt = tasklist_prompt_template.invoke(
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.113.219",
+#   "context": "Target machine IP Address is 10.10.29.68",
 #   "current_task": -1,
 #   "next": ""
 # }

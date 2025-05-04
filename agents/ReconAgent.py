@@ -27,16 +27,26 @@ def recon_agent(state: StingerState):
     is_validated_task = current_task["status"] == "validated"
     is_assigned_recon = current_task["agent"] = "Recon"
 
+    # Check if we can answer the task before calling tools
+    if not state["tasks"][state["current_task"]]["preflightcheck"]:
+        if current_task["target_ip"] in state["hosts"].keys(): # Check if we have an entry for the target's IP
+            return {
+                "messages": [AIMessage(f"ReconAgent: Sending task {state["current_task"]}: \"{task_str}\" to validator for pre-flight check.")]
+            }
+        else:
+            state["tasks"][state["current_task"]]["preflightcheck"] = True
+
+
     ## Check the CURRENT TASK status and take action
     if is_assigned_recon and not is_validated_task:
         task_str = current_task["task"]
-        target_ip = current_task["target_ip"]
+        # target_ip = current_task["target_ip"]
         if is_working_task:
-            context.append( '\n'.join(str(state["hosts"][target_ip])) )
+            # context.append( str(state["hosts"][target_ip]) )
             agent_messages.append(AIMessage(f"ReconAgent: Reworking task {state["current_task"]}: \"{task_str}\"."))
         if is_new_task:
             state["tasks"][ state["current_task" ]]["status"] = "working"
-            context.append('\n'.join(str(state["hosts"][target_ip])))
+            # context.append( str(state["hosts"][target_ip]) )
             agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
     ## Finding a new task to set as current and take action
     else:
@@ -44,13 +54,15 @@ def recon_agent(state: StingerState):
             if task["agent"] == "Recon":
                 if task["status"] == "new":  # The task hasn't been executed
                     task_str = task["task"]
-                    target_ip = task["target_ip"]
+                    # target_ip = task["target_ip"]
                     state["tasks"][index]["status"] = "working" # Mark task as executing
                     state["current_task"] = index
-                    context.append('\n'.join(str(state["hosts"][target_ip])))
+                    # context.append('\n'.join(str(state["hosts"][target_ip])))
                     agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
                     break # stopping at first 'new' task
 
+
+    ## Setting up LLM Call
     if task_str is not None:
         recon_prompt_template = get_recon_prompt_template()
         recon_prompt = recon_prompt_template.invoke(
@@ -75,9 +87,12 @@ def recon_agent(state: StingerState):
 
 def recon_router(state: StingerState):
     last_message = state["messages"][-1]
+    current_task = state["tasks"][state["current_task"]]
+    preflightcheck = current_task["preflightcheck"]
 
-    if last_message.type == 'ai' and last_message.tool_calls:
-        return "ReconToolNode"
+    if last_message.tool_calls: return "ReconToolNode"
+    if not preflightcheck: return "ReconValidator"
+
     return "ReconHandoff"
 
 def output_formatter(state: StingerState):
@@ -119,11 +134,13 @@ def output_formatter(state: StingerState):
 
 
 def validator(state: StingerState):
+    state["tasks"][state["current_task"]]["preflightcheck"] = True
+    target_ip = state["tasks"][state["current_task"]]["target_ip"]
     validator_prompt_template = get_task_answer_prompt_template()
     validator_prompt = validator_prompt_template.invoke(
         {
             "task": state["tasks"][ state["current_task"] ]["task"],
-            "tool_output": state["tasks"][ state["current_task"] ]["output"]
+            "host_data": state["hosts"][ target_ip ]
         }
     )
 
@@ -160,7 +177,7 @@ recon_workflow = StateGraph(StingerState)
 recon_workflow.add_edge(START, "ReconAgent")
 recon_workflow.add_node("ReconAgent", recon_agent)
 
-recon_workflow.add_conditional_edges("ReconAgent", recon_router, ["ReconToolNode", "ReconHandoff"])
+recon_workflow.add_conditional_edges("ReconAgent", recon_router, ["ReconToolNode", "ReconHandoff", "ReconValidator"])
 recon_workflow.add_node("ReconToolNode", recon_tool_node)
 recon_workflow.add_node("ReconHandoff", handoff)
 

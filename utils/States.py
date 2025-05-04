@@ -26,6 +26,7 @@ class TaskAnswer(TypedDict):
 class Task(TypedDict):
     """Single Task entity for agents to process."""
     task: str
+    preflightcheck: bool
     status: Literal["new", "working", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
     tool: List[str] # The tool(s) used to complete the task
