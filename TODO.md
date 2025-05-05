@@ -1,4 +1,10 @@
 # TODO List!
+## Server Management
+* [ ] RoboPages - Let the server handle launching and running
+* [ ] DNS server - something to allow ALLLLL docker containers to use for custom DNS entries
+  * [ ] Docker container management could probably handle this [Docker DNS](https://docs.docker.com/engine/network/#dns-services)
+* [ ] Mythic C2 - Managing Mythic C2
+
 ## Stinger
 * [x] Expand `Task` structure to capture the out of tools or answers to questions
 * [x] Adjust task list prompt to leave the answer fields blank on generation, or at least the answer.
@@ -17,7 +23,7 @@
 * [x] Add pre-validation loop to check for answers in host object
   * [x] Update host data merging
 * [x] Update PreFlightCheck when task switching, check hunting for loop on line 54
-* [ ] investigate host table being purged, probably done during PFC
+* [x] investigate host table being purged, probably done during PFC
   *  https://smith.langchain.com/public/1bca3a82-c6d7-412c-8da2-eb584cc6e3ad/r
 
 ## Overall
