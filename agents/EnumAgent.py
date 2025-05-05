@@ -122,15 +122,6 @@ def output_formatter(state: StingerState):
         response = llm_output_format_selection.invoke(output_format_prompt)
         state["messages"] = add_messages(state["messages"], response)
         output = response.tool_calls[0]["args"]
-
-        target_host = Host(
-            ip_address=output["ip_address"],
-            hostname=[output["hostname"]],
-            ports={}
-        )
-
-        # commit host data to the state table
-        state["hosts"][target_host["ip_address"]] = target_host
         state["tasks"][state["current_task"]]["output"].append(output)
 
         return {
