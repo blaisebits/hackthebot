@@ -1,4 +1,5 @@
 from typing import Literal
+import pickle
 
 from langchain_core.messages import HumanMessage, AIMessage
 
@@ -6,14 +7,18 @@ from langgraph.graph import START, END, add_messages, StateGraph
 from langgraph.types import Command
 
 from agents.EnumAgent import enum_graph
+from agents.ExploitAgent import exploit_graph
 from agents.ReconAgent import recon_graph
 from utils.Configuration import Configuration
+from utils.LLMHelpers import llm_invoke_retry
+from utils.OutputFormatters import TaskBasicInfoList
 from utils.Prompts import get_tasklist_prompt_template
 from utils.States import StingerState, TaskList
+from utils.Tasking import expand_task_basic_info
 
 agents = ["Recon",
           "Enum",
-          # "Exploit",
+          "Exploit",
           # "PostEx"
           ]
 
@@ -35,7 +40,7 @@ def user_input(state: StingerState):
 def initializer(state: StingerState):
     raw_tasks = state["messages"][-1].content
     #Ad Hoc fix for initializing the first tasks from UserInput
-    stinger_context = state["context"] + "\n The `output`, `tool`, and `answer` parameters should be blank, and the `preflightcheck` should be false."
+    stinger_context = state["context"]
 
     tasklist_prompt_template = get_tasklist_prompt_template()
     tasklist_prompt = tasklist_prompt_template.invoke(
@@ -45,12 +50,16 @@ def initializer(state: StingerState):
             "context": stinger_context
         }
     )
-    llm_with_structured_output = llm.with_structured_output(TaskList)
-    response = llm_with_structured_output.invoke(tasklist_prompt)
+    llm_with_structured_output = llm.with_structured_output(TaskBasicInfoList)
+    response = llm_invoke_retry(llm_with_structured_output,tasklist_prompt)
+
+    unordered_task_list = []
+    for task in response.tasks:
+        unordered_task_list.append(expand_task_basic_info(task))
 
     # Checking for and ordering task list by agent: Recon -> Enum -> Exploit -> PostEx
     ordered_task_list = []
-    for task in response["tasks"]:
+    for task in unordered_task_list:
         for agent in agents:
             if task["agent"] == agent:
                 ordered_task_list.append(task)
@@ -59,7 +68,7 @@ def initializer(state: StingerState):
     }
 
 
-def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum"]]:
+def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploit","StingerHandOff"]]:
     goto = ""
     agent_message = ""
     for index, task in enumerate(state["tasks"]):
@@ -68,14 +77,25 @@ def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum"]]:
             state["current_task"] = index
             agent_message = [AIMessage(f"StingerAgent: Passing to {goto}")]
             break
-    return Command(
-        goto=goto,
-        update={
-            "next": goto,
-            "messages": agent_message,
-            "current_task": state["current_task"]
-        }
-    )
+
+    if not goto:
+        return Command( goto="StingerHandOff" )
+    else:
+        return Command(
+            goto=goto,
+            update={
+                "next": goto,
+                "messages": agent_message,
+                "current_task": state["current_task"]
+            }
+        )
+
+def handoff(state: StingerState):
+    with open('data.pickle', 'wb') as file:
+        pickle.dump(state, file)
+
+    return state
+
 
 stinger_workflow = StateGraph(StingerState)
 
@@ -85,9 +105,10 @@ stinger_workflow.add_edge("UserInput", "Initializer")
 stinger_workflow.add_node("Initializer", initializer)
 stinger_workflow.add_edge("Initializer", "StingerAgent")
 stinger_workflow.add_node("StingerAgent", stinger_agent)
+stinger_workflow.add_node("StingerHandOff", handoff)
 stinger_workflow.add_node("Recon", recon_graph)
 stinger_workflow.add_node("Enum", enum_graph)
-#stinger_workflow.add_node("Exploit", exploit_graph)
+stinger_workflow.add_node("Exploit", exploit_graph)
 #stinger_workflow.add_node("PostEx", postex_graph)
 
 stinger_graph = stinger_workflow.compile()
@@ -126,12 +147,12 @@ if __name__ == "__main__":
 # {
 #   "messages": [
 #     {
-#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. . What is the hidden directory?",
+#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. What is the hidden directory?\n* Crawl discovered directories. What URLS have upload forms?\n* Get a remote code execution from a web shell.",
 #       "type": "human"
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.99.108",
+#   "context": "Target machine IP Address is 10.10.218.240",
 #   "current_task": -1,
 #   "next": ""
 # }

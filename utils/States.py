@@ -13,15 +13,34 @@ class Port(TypedDict):
     cpe: List[str]
     scripts: List[str]
 
+class TaskAnswer(TypedDict):
+    question: str
+    answer: str
+
 class Host(TypedDict):
     """Single network entity"""
     ip_address: str
     hostname: List[str]
     ports: Dict[str, Port] # example {"22/tcp":{ Port({..} }
+    initial_access_exploit: str
+    verdicts: List[TaskAnswer]
 
-class TaskAnswer(TypedDict):
-    question: str
-    answer: str
+class MiniTask(TypedDict):
+    """Single Task entity for agents to process."""
+    task: str
+    status: Literal["new", "working", "validated"]
+    tool: List[str] # The tool(s) used to complete the task
+    output: List[Dict] # output_formatted tool call output
+    answer: Optional[TaskAnswer] # Answer for Task
+
+class ExploitTask(TypedDict):
+    task_id: int # index reference to the state task list
+    status: Literal["new", "working", "validated"]
+    verdict: Literal["exploitable","non-exploitable"]
+    subtasks: List[MiniTask]
+    target_ip: str  # The target host IP address
+    tool: List[str]  # The tool(s) used to complete the task
+    output: List[Dict]  # output_formatted tool call output
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""
@@ -30,9 +49,9 @@ class Task(TypedDict):
     status: Literal["new", "working", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
     tool: List[str] # The tool(s) used to complete the task
-    output: List[Dict] # output_formatted tool call output
+    output: List[Dict|ExploitTask] # Formatted Tool output or ExploitTask
     target_ip: str # The target host IP address
-    answer: Optional[TaskAnswer] # Answer for Task
+    verdict: Optional[TaskAnswer]|None # Answer for Task
 
 class TaskList(TypedDict):
     """Used for structured output"""

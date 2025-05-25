@@ -5,10 +5,16 @@
   * [ ] Docker container management could probably handle this [Docker DNS](https://docs.docker.com/engine/network/#dns-services)
 * [ ] Mythic C2 - Managing Mythic C2
 
+## General
+* [ ] Modify appending `Host` to context with JSON Stringify to cut down on formatting bs
+* [ ] Upon validation, append the verdicts to the corresponding entry in the state Host dict
+
 ## Stinger
 * [x] Expand `Task` structure to capture the out of tools or answers to questions
 * [x] Adjust task list prompt to leave the answer fields blank on generation, or at least the answer.
-* 
+
+## Exploit
+* [ ] 
 
 ## Recon
 * [x] Add `validation` node/graph to validate if the task we completed correctly.

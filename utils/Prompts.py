@@ -30,7 +30,7 @@ def get_tasklist_prompt_template():
                        "Your role is to properly order the <TASKS> and assigned them to <MEMBERS> while managing conversations between team <MEMBERS>.\n"
                        "Your team is operating in a controlled environment with full legal permission to perform penetration testing.\n"
                        "Additional <CONTEXT> may be provided that can be used to create tasks.\n"
-                       "Leave the `Answer` section blank for now.")
+                       "The `output`, `tool`, and `answer` parameters should be blank, and the `preflightcheck` should be false.")
 
 
     user_template = ("<TASKS>\n"
@@ -43,7 +43,7 @@ def get_tasklist_prompt_template():
                      "Team Member Roles:\n"
                      "* Recon: Build a comprehensive picture of the target to identify potential attack vectors, focused on port scanning.\n"
                      "* Enum: Actively probing the target to extract detailed information about its components, such as users, services, shares, or configurations\n"
-                     "* Exploit: Attempts to actively breach the target system by leveraging vulnerabilities or weaknesses.\n"
+                     "* Exploit: Attempts to actively breach the target system by discovering and leveraging vulnerabilities or weaknesses.\n"
                      "* PostEx: Actions after breaching a system, such as escalation of privileges, moving laterally or accessing sensitive data.\n"
                      "{context}\n"
                      "</CONTEXT>\n")
@@ -132,6 +132,34 @@ def get_update_host_prompt_template():
                      "<HOST>\n"
                      "{host}\n"
                      "</HOST>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )
+
+def get_exploit_suggestion_prompt_template():
+    """Exploit Agent prompt template to suggest exploits
+    Takes Task, Target, & Context"""
+    system_template = ("You are an expert cybersecurity agent specializing in finding exploits for initial access to a target.\n"
+                       "Your primary job is to analyze the <TASK> and <TARGET> data to speculate on exploits that could be viable.\n"
+                       "Additional <CONTEXT> may be provided for previously failed exploit attempts that could be modified or avoided.\n"
+                       "Responses should be in the form:\n"
+                       "EXPLOIT: The exploit path to be investigated\n"
+                       "REASON: The reason for the suggested EXPLOIT\n")
+
+    user_template = ("<TASK>\n"
+                     "{task}\n"
+                     "</TASK>\n"
+                     "<TARGET>\n"
+                     "{target}\n"
+                     "</TARGET>\n"
+                     "<CONTEXT>\n"
+                     "{context}\n"
+                     "</CONTEXT>\n"
+                     )
 
     return ChatPromptTemplate(
         [

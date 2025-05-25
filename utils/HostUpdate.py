@@ -33,5 +33,7 @@ def get_stub_host(ip_address: str):
     return Host(
                 ip_address=ip_address,
                 hostname=[],
-                ports={}
+                ports={},
+                initial_access_exploit="",
+                verdicts=[]
             )

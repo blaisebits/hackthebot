@@ -3,7 +3,8 @@
   "graphs": {
     "Stinger": "./agents/StingerAgent.py:stinger_graph",
     "Recon": "./agents/ReconAgent.py:recon_graph",
-    "Enum": "./agents/EnumAgent.py:enum_graph"
+    "Enum": "./agents/EnumAgent.py:enum_graph",
+    "Exploit": "./agents/ExploitAgent.py:exploit_graph"
   },
   "env": ".env"
 }

@@ -1,3 +1,5 @@
+from http.client import responses
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import StateGraph, START, add_messages
 from langgraph.prebuilt import ToolNode
@@ -5,6 +7,7 @@ from langgraph.types import Command
 
 from utils.Configuration import Configuration
 from utils.HostUpdate import host_update, get_stub_host
+from utils.LLMHelpers import llm_invoke_retry
 from utils.LangChain_RoboPages import RoboPages
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
@@ -52,7 +55,7 @@ def recon_agent(state: StingerState):
             if not state["tasks"][state["current_task"]]["preflightcheck"]: # No PFC yet
                 if state["tasks"][state["current_task"]]["target_ip"] in state["hosts"].keys():  # Target IP has entry in host table
                     agent_messages.append(AIMessage(
-                        f"EnumAgent: Sending task {state["current_task"]}: \"{task_str}\" to validator for pre-flight check."))
+                        f"ReconAgent: Sending task {state["current_task"]}: \"{task_str}\" to validator for pre-flight check."))
                     return {
                         "messages": agent_messages,
                         "current_task": state["current_task"]
@@ -80,7 +83,8 @@ def recon_agent(state: StingerState):
             }
         )
 
-        response = llm_with_tools.invoke(recon_prompt)
+        # response = llm_with_tools.invoke(recon_prompt)
+        response = llm_invoke_retry(llm_with_tools, recon_prompt)
         state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
         agent_messages.append(response)
         return {
@@ -117,7 +121,8 @@ def output_formatter(state: StingerState):
             }
         )
 
-        response = llm_output_format_selection.invoke(output_format_prompt)
+        # response = llm_output_format_selection.invoke(output_format_prompt)
+        response = llm_invoke_retry(llm_output_format_selection,output_format_prompt)
         state["messages"] = add_messages(state["messages"], response)
         output  = response.tool_calls[0]["args"]
         state["tasks"][ state["current_task"] ]["output"].append(output)
@@ -145,7 +150,8 @@ def validator(state: StingerState):
     )
 
     llm_with_structured_output = llm.with_structured_output(TaskAnswer)
-    response = llm_with_structured_output.invoke(validator_prompt)
+    # response = llm_with_structured_output.invoke(validator_prompt)
+    response = llm_invoke_retry(llm_with_structured_output,validator_prompt)
 
     if response.answer == "":    # Check if task needs further processing from blank answer
         return {
@@ -153,7 +159,7 @@ def validator(state: StingerState):
         }
     else:
         state["tasks"][ state["current_task"] ]["status"] = "validated"
-        state["tasks"][ state["current_task"] ]["answer"] = response
+        state["tasks"][ state["current_task"] ]["verdict"] = response
 
         return {
             "messages": [AIMessage(f"ReconValidator: Task {state["current_task"]} validated.\n"
