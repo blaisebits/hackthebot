@@ -1,0 +1,42 @@
+description: >
+  Gobuster is a tool used for brute-force discovery of URIs (directories and files) in web sites, DNS subdomains (with wildcard support), Virtual Host names on target web servers, Open Amazon S3 buckets, Open Google Cloud buckets, TFTP servers
+
+functions:
+  gobuster_directory_brute_force:
+    description: Perform a web server directory brute force to find hidden files and folders
+    parameters:
+      target:
+        type: string
+        description: The URL against which to perform brute force scan.
+        examples:
+          - http://www.example.com
+          - https://supersight.totallyawesome.com
+      #wordlist:
+      #  type: string
+      #  description: Wordlist to use for the brute force scan.
+
+    container:
+      force: true
+      platform: linux/amd64
+      image: ghcr.io/oj/gobuster:latest
+      args:
+        - --net=host
+      volumes:
+        - ${cwd}/data:/data
+
+    cmdline:
+      - gobuster
+      - dir
+      - -t 
+      - '20'
+      - --no-color
+      - --quiet
+      - --no-progress
+      - -w
+      - /data/wordlists/web/quickhits.txt
+      - -z
+      - --no-color
+      - -b
+      - '404,403'
+      - -u
+      - ${target}

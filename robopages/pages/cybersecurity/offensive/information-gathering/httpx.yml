@@ -1,0 +1,30 @@
+description: httpx is a fast and multi-purpose HTTP toolkit that allows running multiple probes using the retryablehttp library. It is designed to maintain result reliability with an increased number of threads.
+
+functions:
+  httpx_tech_detect:
+    description: Run multiple HTTP probes on a target to fingerprint the web technology stack.
+    parameters:
+      target:
+        type: string
+        description: The target to recon.
+        examples:
+          - http://testphp.vulnweb.com
+
+    container:
+      image: projectdiscovery/httpx
+      args:
+        - --net=host
+
+    cmdline: # https://github.com/projectdiscovery/httpx
+      - httpx
+      - -title
+      - -status-code
+      - -tech-detect
+      - -follow-redirects
+      - -no-stdin
+      - -no-color
+      - -json
+      - -disable-update-check
+      - -silent
+      - -u
+      - "${target}"

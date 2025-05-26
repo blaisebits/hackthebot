@@ -1,0 +1,62 @@
+description: Katana is a fast crawler focused on execution in automation pipelines offering both headless and non-headless crawling.
+
+functions:
+  katana_headless_crawler:
+    description: "Crawls a target or list of targets in headless mode"
+    parameters:
+      target:
+        type: string
+        description: "target url / list to crawl"
+        examples:
+          - https://target.tld
+          - https://tesla.com,https://google.com
+
+    container:
+      image: projectdiscovery/katana # https://github.com/projectdiscovery/katana
+      args:
+        - --net=host
+
+    cmdline:
+      - katana
+      - -u
+      - ${target}
+      - -system-chrome
+      - -headless
+      - -silent
+      - -timeout
+      - '30'
+      - -jsonl
+
+  katana_proxied_crawler_scope:
+    description: "Crawls a target or list of targets with a proxy and defined crawl scope using regex"
+    parameters:
+      target:
+        type: string
+        description: "target url / list to crawl"
+        examples:
+          - https://target.tld
+          - https://tesla.com,https://google.com
+      proxy:
+        type: string
+        description: The upstream proxy dstip and dstport
+        examples:
+          - http://127.0.0.1:8080 # burp default
+      crawl_scope:
+        type: string
+        description: For advanced scope control, -cs option can be used that comes with regex support.
+        examples:
+          - login
+
+    container: # https://github.com/projectdiscovery/katana
+      image: projectdiscovery/katana
+      args:
+        - --net=host
+
+    cmdline:
+      - katana
+      - -u
+      - ${target}
+      - -proxy
+      - ${proxy}
+      - -cs
+      - ${crawl_scope}

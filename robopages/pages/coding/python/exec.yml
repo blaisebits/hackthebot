@@ -1,0 +1,38 @@
+description: A set of functions to execute python code in various flavors.
+
+functions:
+  python_exec:
+    description: Execute python code.
+    parameters:
+      code:
+        type: string
+        description: Python code to execute.
+        examples:
+          - print("Hello, World!")
+          - print(f"The value of pi is approximately {math.pi:.2f}")
+          - import requests; print(requests.get("https://example.com").text)
+          - 'import requests; print(requests.post("https://example.com", data={"key": "value"}).text)'
+          - |
+            import random
+            
+            def generate_random_numbers(n):
+                return [random.randint(1, 100) for _ in range(n)]
+            
+            numbers = generate_random_numbers(10)
+            print(f"Generated numbers: {numbers}")
+            print(f"Sum of numbers: {sum(numbers)}")
+            print(f"Average of numbers: {sum(numbers) / len(numbers):.2f}")
+
+    container:
+      # we don't want to run python on the host
+      force: true
+      # we want to preserve the "python" app name in the command line for this one
+      preserve_app: true
+      image: python:3.7-alpine
+      args:
+        - --net=host
+
+    cmdline:
+      - python
+      - -c
+      - "${code}"

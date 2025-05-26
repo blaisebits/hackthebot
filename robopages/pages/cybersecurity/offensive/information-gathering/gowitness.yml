@@ -1,0 +1,33 @@
+description: >
+  Gowitness is a website screenshot utility written in Go that uses Chrome's rendering engine to capture web interface screenshots during reconnaissance.
+
+functions:
+  gowitness_single:
+    description: Capture a screenshot of a single URL.
+    parameters:
+      target:
+        type: string
+        description: The URL to capture.
+        examples:
+          - https://example.com
+
+    container:
+      platform: linux/amd64
+      build:
+        path: ${cwd}/gowitness.Dockerfile
+        name: gowitness_local
+      args:
+        - --net=host
+      volumes:
+        - ${cwd}/screenshots:/screenshots
+
+    cmdline:
+      - gowitness
+      - scan
+      - single
+      - --url
+      - ${target}
+      - --screenshot-path
+      - /screenshots
+      - --write-jsonl
+      - --write-screenshots

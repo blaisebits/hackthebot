@@ -1,0 +1,88 @@
+description: A set of web related utilities.
+
+functions:
+  http_get:
+    description: Perform an HTTP GET request to a given URL.
+    parameters:
+      user_agent:
+        type: string
+        required: false
+        description: An optional, NON EMPTY User-Agent string to use for the request.
+        examples:
+          - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+          - "curl/7.86.0"
+          - "robopages"
+
+      url:
+        type: string
+        description: The URL to perform the GET request on.
+        examples:
+          - https://example.com
+          - https://example.com/path/to/resource
+          - https://example.com/path/to/resource?query=string
+
+    container:
+      image: alpine/curl
+      args:
+        - --net=host
+
+    cmdline:
+      - curl
+      - -s
+      - -L
+      - -A
+      - "${user_agent or robopages}"
+      - "${url}"
+
+  http_post:
+    description: Perform an HTTP POST request to a given URL.
+    parameters:
+      user_agent:
+        type: string
+        required: false
+        description: An optional, NON EMPTY User-Agent string to use for the request.
+        examples:
+          - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+          - "curl/7.86.0"
+          - "robopages"
+
+      data:
+        type: string
+        description: The data to send in the POST request.
+        examples:
+          - "key1=value1&key2=value2"
+          - "{\"key\":\"value\"}"
+
+      content_type:
+        type: string
+        description: The Content-Type header to use for the request.
+        examples:
+          - "application/x-www-form-urlencoded"
+          - "application/json"
+
+      url:
+        type: string
+        description: The URL to perform the GET request on.
+        examples:
+          - https://example.com
+          - https://example.com/path/to/resource
+          - https://example.com/path/to/resource?query=string
+
+    container:
+      image: alpine/curl
+      args:
+        - --net=host
+
+    cmdline:
+      - curl
+      - -X
+      - POST
+      - "${url}"
+      - -s
+      - -L
+      - -A
+      - "${user_agent or robopages}"
+      - -H
+      - "Content-Type: ${content_type}"
+      - -d
+      - "${data}"
