@@ -4,4 +4,5 @@ docker run -it --rm \
 	-v$PWD/pages:/root/.robopages \
 	-v$PWD/data:/data \
 	--network=host \
+	-e WORKINGDIR=$PWD \
 	dreadnode/robopages "$@"

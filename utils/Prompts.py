@@ -95,7 +95,10 @@ def get_task_answer_prompt_template():
 def get_enum_prompt_template():
     """Enumeration Agent prompt template to support tool calling
     Takes Tools, Task, Context"""
-    system_template = ("You are an expert cybersecurity agent specializing in enumerating networks and computers, your primary objective is to complete <TASKS> defined below using the provided tooling and <CONTEXT> to provide answers. If the answer is not in the <CONTEXT>, use the provided <TOOLS> to obtain the information to answer the question.\n"
+    system_template = ("You are an expert cybersecurity agent specializing in enumerating networks and computers.\n"
+                       "Your primary objective is to complete assigned <TASKS> using the provided tooling and <CONTEXT> to provide answers.\n"
+                       "If the answer is not in the <CONTEXT>, use the provided <TOOLS> to obtain the information to answer the question.\n"
+                       "<PREVIOUS ATTEMPTS> may have been made to complete this task, examine these to avoid duplicating failed attempts.\n"
                        "Responses for answering questions should follow this form:\n"
                        "QUESTION: The question being addressed\n"
                        "ANSWER: The answer to the question\n"
@@ -109,7 +112,10 @@ def get_enum_prompt_template():
                      "</TASKS>\n"
                      "<CONTEXT>\n"
                      "{context}\n"
-                     "</CONTEXT>\n")
+                     "</CONTEXT>\n"
+                     "<PREVIOUS ATTEMPTS>\n"
+                     "{previous_attempts}"
+                     "</PREVIOUS ATTEMPTS>")
 
     return ChatPromptTemplate(
         [
@@ -123,8 +129,9 @@ def get_update_host_prompt_template():
     inputs: tool_output, host"""
     system_template = ("You are a Data Manager tasked with merging new information from <TOOL_OUTPUT> into a <HOST> object.\n"
                        "The primary key for the host is the `ip_address`.\n"
-                       "The `hostname` list should contain only fully unique entries.\n"
-                       "The <TOOL_OUTPUT> data should be extracted and used to update or fill in blank `Port` entries.\n")
+                       "The `hostname` list should contain only unique DNS name entries.\n"
+                       "The <TOOL_OUTPUT> data should be extracted and used to update or fill in additional information in `Port` entries.\n"
+                       "Prevent loss of data and carry forward to the output any unchanged fields.")
 
     user_template = ("<TOOL_OUTPUT>\n"
                      "{tool_output}\n"
