@@ -3,3 +3,4 @@
 *.pyc
 /logs/*
 *.pickle
+/robopages/.robopages-server.sh.swp

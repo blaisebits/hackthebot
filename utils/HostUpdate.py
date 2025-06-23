@@ -22,7 +22,10 @@ def host_update(state: StingerState):
     )
     llm_with_structured_output = llm.with_structured_output(Host)
 
-    state["hosts"][ current_task["target_ip"] ] = llm_with_structured_output.invoke(update_host_prompt)
+    # Preserving Verdicts from LLM shenanigans and dropping.
+    response:Host = llm_with_structured_output.invoke(update_host_prompt)
+    response["verdicts"] = host_data["verdicts"]
+    state["hosts"][ current_task["target_ip"] ] = response
 
     return {
         "hosts": state["hosts"],

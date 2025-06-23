@@ -121,7 +121,6 @@ def output_formatter(state: StingerState):
             }
         )
 
-        # response = llm_output_format_selection.invoke(output_format_prompt)
         response = llm_invoke_retry(llm_output_format_selection,output_format_prompt)
         state["messages"] = add_messages(state["messages"], response)
         output  = response.tool_calls[0]["args"]
@@ -160,6 +159,9 @@ def validator(state: StingerState):
     else:
         state["tasks"][ state["current_task"] ]["status"] = "validated"
         state["tasks"][ state["current_task"] ]["verdict"] = response
+
+        target_ip = state["tasks"][ state["current_task"] ]["target_ip"]
+        state["hosts"][target_ip]["verdicts"].append(response)
 
         return {
             "messages": [AIMessage(f"ReconValidator: Task {state["current_task"]} validated.\n"

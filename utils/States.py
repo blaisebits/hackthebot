@@ -16,31 +16,30 @@ class Port(TypedDict):
 class TaskAnswer(TypedDict):
     question: str
     answer: str
+    reason: str
 
 class Host(TypedDict):
     """Single network entity"""
-    ip_address: str
-    hostname: List[str]
-    ports: Dict[str, Port] # example {"22/tcp":{ Port({..} }
-    initial_access_exploit: str
-    verdicts: List[TaskAnswer]
+    ip_address: Annotated[str, ..., "IP address of the host"]
+    hostname: Annotated[List[str], ..., "DNS hostname associated to the host."]
+    ports: Annotated[Dict[str, Port], ..., "Mapping of ports to their attributes."]
+    initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
+    verdicts: Annotated[List[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
 
-class MiniTask(TypedDict):
+class ExploitStep(TypedDict):
     """Single Task entity for agents to process."""
-    task: str
-    status: Literal["new", "working", "validated"]
+    step_task: str
+    status: Literal["new", "working", "validated", "failed", "skipped"]
     tool: List[str] # The tool(s) used to complete the task
     output: List[Dict] # output_formatted tool call output
-    answer: Optional[TaskAnswer] # Answer for Task
 
 class ExploitTask(TypedDict):
-    task_id: int # index reference to the state task list
-    status: Literal["new", "working", "validated"]
-    verdict: Literal["exploitable","non-exploitable"]
-    subtasks: List[MiniTask]
+    task: str
+    status: Literal["new", "working", "validated", "failed"]
+    verdict: Literal["exploitable","non-exploitable"]|None
+    current_step: int
+    steps: List[ExploitStep]
     target_ip: str  # The target host IP address
-    tool: List[str]  # The tool(s) used to complete the task
-    output: List[Dict]  # output_formatted tool call output
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""

@@ -147,12 +147,12 @@ if __name__ == "__main__":
 # {
 #   "messages": [
 #     {
-#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. What is the hidden directory?\n* Crawl discovered directories. What URLS have upload forms?\n* Get a remote code execution from a web shell.",
+#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. Which directories are hidden?\n* Examine discovered directories. Which URLS have upload forms?\n* Get a remote code execution from a web shell.",
 #       "type": "human"
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.218.240",
+#   "context": "Target machine IP Address is 10.10.61.165",
 #   "current_task": -1,
 #   "next": ""
 # }

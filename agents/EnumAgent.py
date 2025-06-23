@@ -78,7 +78,8 @@ def enum_agent(state: StingerState):
         enum_prompt = enum_prompt_template.invoke(
             {
                 "tasks": task_str,
-                "context": context
+                "context": context,
+                "previous_attempts": state["tasks"][state["current_task"]]["output"]
             }
         )
 
@@ -160,6 +161,9 @@ def validator(state: StingerState):
     else:
         state["tasks"][state["current_task"]]["status"] = "validated"
         state["tasks"][state["current_task"]]["verdict"] = response
+
+        target_ip = state["tasks"][state["current_task"]]["target_ip"]
+        state["hosts"][target_ip]["verdicts"].append(response)
 
         return {
             "messages": [AIMessage(f"EnumValidator: Task {state["current_task"]} validated.\n"
