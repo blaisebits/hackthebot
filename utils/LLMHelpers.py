@@ -1,14 +1,14 @@
-from anthropic import APIStatusError
+from anthropic import APIStatusError, RateLimitError
 from langchain_core.prompt_values import PromptValue
 from langchain_core.runnables import Runnable
 from langchain_core.runnables.utils import Output
 from retry import retry
 
 
-@retry(exceptions=APIStatusError, tries=3, delay=10)
+@retry(exceptions=(APIStatusError,RateLimitError), tries=3, delay=10)
 def llm_invoke_retry(llm: Runnable, prompt: PromptValue) -> Output:
     """
-    Retry LLM calls incase overloaded error being returned
+    Retry LLM calls incase API errors are being returned
     """
     if isinstance(llm, Runnable):
         if isinstance(prompt, PromptValue):

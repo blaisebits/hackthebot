@@ -2,6 +2,9 @@ from typing import Dict, List, Literal
 from pydantic import BaseModel, Field
 from utils.States import Port
 
+class SpecialAgentCaller(BaseModel):
+    name:str = Field(description="Name of the special agent to pass execution")
+
 class TaskAnswer(BaseModel):
     """Structured output for validator to check if tasks are completed."""
     question: str = Field(description="The question being asked.")

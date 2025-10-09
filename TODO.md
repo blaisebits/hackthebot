@@ -1,10 +1,11 @@
 # TODO List!
 ## Server Management
+* [ ] Configure all agents to use file handling from the docker volume 'hackthebot'
 * [ ] RoboPages - Let the server handle launching and running
 * [ ] DNS server - something to allow ALLLLL docker containers to use for custom DNS entries
   * [ ] Docker container management could probably handle this [Docker DNS](https://docs.docker.com/engine/network/#dns-services)
 * [ ] Mythic C2 - Managing Mythic C2
-* [ ] Docker Compose to handle services
+* [ ] Docker Compose to handle services??
   * [ ] Robopages
   * [ ] DNS Server
   * [ ] MCP speciality tools
@@ -44,4 +45,3 @@
 
 # Potential future issues
 * Handling for multi-system CTFs
-* 

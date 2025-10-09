@@ -2,7 +2,7 @@
 docker run -it --rm \
 	-v/var/run/docker.sock:/var/run/docker.sock \
 	-v$PWD/pages:/root/.robopages \
-	-v$PWD/data:/data \
+	-v hackthebot:/data \
 	--network=host \
-	-e WORKINGDIR=$PWD \
+	--name robopages \
 	dreadnode/robopages serve --lazy

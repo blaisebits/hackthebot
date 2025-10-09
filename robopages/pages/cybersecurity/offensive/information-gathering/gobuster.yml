@@ -22,7 +22,8 @@ functions:
       args:
         - --net=host
       volumes:
-        - ${cwd}/data:/data
+#        - $WORKINGDIR/data:/data
+        - hackthebot:/data
 
     cmdline:
       - gobuster

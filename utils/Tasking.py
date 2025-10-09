@@ -1,4 +1,3 @@
-from utils.HostUpdate import get_stub_host
 from utils.OutputFormatters import TaskBasicInfo
 from utils.States import Task, StingerState, ExploitTask, ExploitStep
 
@@ -39,3 +38,29 @@ def get_exploit_step(step_task: str)-> ExploitStep:
         tool= [],
         output= []
     )
+
+def get_current_exploit_task(state: StingerState) -> int:
+    """
+    Checks the state table for the currently working exploit task
+    Returns -1 if no working task is found
+    """
+    for index, element in enumerate(state["tasks"][state["current_task"]]["output"]):
+        if element["status"] == "working":
+            return index
+
+    return -1
+
+def format_tool_output(tools:list[str], outputs:list[dict]) -> dict:
+    """
+    Takes in a list of tools and list of outputs and returns a single dictionary
+    for inserting into LLM context.
+    """
+    print("***************************************************************************")
+    print(tools)
+    print(outputs)
+    print("***************************************************************************")
+    x = {}
+    for i, tool in enumerate(tools):
+        x["tool"] = outputs[i]
+
+    return x

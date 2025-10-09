@@ -1,28 +1,44 @@
-from typing import Optional, Any
-from anthropic import APIStatusError
 from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.language_models import BaseChatModel
 from typing_extensions import TypedDict
 from dotenv import load_dotenv
 load_dotenv()
 
+from os import getenv
+
 from utils.LangChain_RoboPages import RoboPages, RoboPagesTool
 rb = RoboPages()
 
+from utils.SpecialAgents import SpecialAgentLoader
+sp = SpecialAgentLoader()
+
 class Config(TypedDict):
-    model: str
-    model_temp: float
     llm: BaseChatModel
     robopages_tools:list[RoboPagesTool]
+    specialagents: SpecialAgentLoader
 
-__DEFAULT_MODEL= "claude-3-7-sonnet-latest"
-__DEFAULT_MODEL_TEMP= 0.70
-__DEFAULT_LLM= ChatAnthropic( model= __DEFAULT_MODEL, temperature= __DEFAULT_MODEL_TEMP )
+__CLAUDE_MODEL= "claude-3-7-sonnet-latest"
+__CLAUDE_MODEL_TEMP= 0.70
+__CLAUDE_LLM= ChatAnthropic(
+        model= __CLAUDE_MODEL,
+        temperature= __CLAUDE_MODEL_TEMP
+    )
+
+__OLLAMA_MODEL= "gpt-oss:20B"
+__OLLAMA_MODEL_TEMP= 0.70
+__OLLAMA_LLM= ChatOpenAI(
+        model= __OLLAMA_MODEL,
+        temperature= __OLLAMA_MODEL_TEMP,
+        openai_api_key="foobar",
+        openai_api_base= getenv("OLLAMA_BASE_URL")
+    )
+
+_LLM = __CLAUDE_LLM
 
 Configuration = Config(
-    model=__DEFAULT_MODEL,
-    model_temp=__DEFAULT_MODEL_TEMP,
-    llm=__DEFAULT_LLM,
-    robopages_tools=rb.get_tools()
+    llm=_LLM,
+    robopages_tools=rb.get_tools(),
+    specialagents=sp
 )
 

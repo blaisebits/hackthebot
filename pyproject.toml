@@ -16,9 +16,13 @@ dependencies = [
     "python-dotenv (>=1.0.1,<2.0.0)",
     "langchain-anthropic (>=0.3.8,<0.4.0)",
     "argparse (>=1.4.0,<2.0.0)",
-    "langgraph (>=0.3.5,<0.4.0)",
-    "langgraph-cli[inmem] (>=0.1.77,<0.2.0)",
-    "retry (>=0.9.2,<0.10.0)"
+    "langgraph (>=0.3.5)",
+    "langgraph-cli[inmem] (>=0.3.6,<0.4.0)",
+    "retry (>=0.9.2,<0.10.0)",
+    "docker-composer (>=2.79.7,<3.0.0)",
+    "docker (>=7.1.0,<8.0.0)",
+    "langchain-mcp-adapters (>=0.1.9,<0.2.0)",
+    "langgraph-api (>=0.2.132,<0.3.0)"
 ]
 
 

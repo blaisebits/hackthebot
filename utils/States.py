@@ -1,4 +1,4 @@
-from typing import Annotated, List, Dict, Literal, Optional
+from typing import Annotated, List, Dict, Literal, Optional, Any
 from typing_extensions import TypedDict
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
@@ -62,6 +62,7 @@ class StingerState(TypedDict):
     tasks: List[Task]
     current_task: int  # points to the list index for tasks field
     context: List[str|Host]
+    persistent_tools: Dict[str, Any] #{agent_name:tool}
     next: str
 
 class StingerRouter(TypedDict):
