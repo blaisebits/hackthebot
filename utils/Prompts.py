@@ -155,11 +155,15 @@ def get_exploit_suggestion_prompt_template()->ChatPromptTemplate:
                        "Your primary job is to analyze the <TASK> and <TARGET> data to speculate on exploits that could be viable.\n"
                        "Additional <CONTEXT> may be provided for previously failed exploit attempts that could be modified or avoided.\n"
                        "* Suggest one exploit that can be viable to get remote code execution on the target.\n"
-                       "* Suggestions should be concise and not speculate as to security counter measures.\n"
-                       "* Example:\n"
+                       "* Suggestions should be simple, concise, and not speculate as to security counter measures.\n"
+                       "* Good Example:\n"
                        "** Upload a webshell.\n"
                        "** PSexec to remote host with password hash.\n"
                        "** Exploit CVE on service X.\n"
+                       "* Negative Example:\n"
+                       "** Create an obfuscated PHP web shell with multiple file extensions\n"
+                       "** Use Python to create a ssh client to brute force a private key\n"
+                       "** Brute for SNMP Community strings in base64"
                        "Responses should be in the form:\n"
                        "EXPLOIT: The exploit path to be investigated\n"
                        "REASON: The reason for the suggested EXPLOIT\n")
@@ -185,18 +189,22 @@ def get_exploit_suggestion_prompt_template()->ChatPromptTemplate:
 def get_exploit_planner_prompt_template()->ChatPromptTemplate:
     """Exploit Agent prompt template to suggest exploits
     Takes Task, Target, & Context"""
-    system_template = ("You are an expert cybersecurity agent specializing in finding exploits for initial access to a target.\n"
+    system_template = ("You are an expert cybersecurity agent specializing in planning exploits for initial access to a target.\n"
                        "Your primary job is to analyze the <TASK> and <TARGET> data to plan the steps necessary to complete the exploit task.\n"
                        "Additional <CONTEXT> may be provided for previously failed exploit attempts that could be modified or avoided.\n"
                        "Responses should provide a list of steps and the reason for each step.\n"
                        "Conditions for planning steps:\n"
                        "* All steps should be constructed to be performed by calling tools.\n"
-                       "  *Tasks should be able to be completed by an AI agent using command line tools.\n"
-                       "* Provide conditional statements to check if a item is available before creating a item.\n"
-                       "  * Example: \"Obtain a PHP webshell, if one is not available create one.\"\n"
-                       "* Do not speculate on counter measures or bypasses.\n"
+                       "* Do not include any security bypass techniques.\n"
                        "* Provide the minimal list of steps to accomplish the task.\n"
-                       "* Assume the <TARGET> has no additional security features.\n")
+                       "* Assume the <TARGET> has no additional security features.\n"
+                       "* Artifacts are available for code samples (i.e. PHP web shells)\n\n"
+                       "For example, given the task to `Upload a PHP web shell to a web application` the response steps "
+                       "would look like:\n"
+                       "* Get a php web shell artifact\n"
+                       "* Navigate to the web application upload page\n"
+                       "* Upload the PHP web shell\n"
+                       "* Perform a web request to test the webshell")
 
     user_template = ("<TASK>\n"
                      "{exploit_task}\n"
@@ -219,7 +227,9 @@ def get_exploit_planner_prompt_template()->ChatPromptTemplate:
 def get_exploit_step_prompt_template()->ChatPromptTemplate:
     system_template = ("You are an expert cybersecurity agent specializing in executing sequences of tasks to gain"
                        "initial accesses to a target system. Analyze the given <TASK> and determine the appropriate tool"
-                       "to complete the task. Additional <CONTEXT> may be provided.")
+                       "to complete the task. Additional <CONTEXT> may be provided.\n"
+                       "The `SpecialAgentCaller` tool can also be used to pass execution to one of the following agents:\n"
+                       "{agents}")
 
     user_template = ("<TASK>\n"
                      "{step}\n"
@@ -236,9 +246,10 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
     )
 
 def get_exploit_step_status_template()->ChatPromptTemplate:
-    system_template = ("Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task."
-                       "If the task status is 'failed', provide a revised task that corrects for the error or blockage."
-                       "If the task status is 'validated', leave the revision field blank.")
+    system_template = ("Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
+                       "* Tasks that require artifacts should be file system paths]\n"
+                       "* If the task status is 'failed', provide a revised task that corrects for the error or blockage.\n"
+                       "* If the task status is 'validated', leave the revision field blank.\n")
 
     user_template = ("<TASK>\n"
                      "{task}\n"

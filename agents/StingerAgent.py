@@ -3,7 +3,7 @@ import pickle
 
 from langchain_core.messages import HumanMessage, AIMessage
 
-from langgraph.graph import START, END, add_messages, StateGraph
+from langgraph.graph import START, add_messages, StateGraph
 from langgraph.types import Command
 
 from agents.EnumAgent import enum_graph
@@ -15,6 +15,17 @@ from utils.OutputFormatters import TaskBasicInfoList
 from utils.Prompts import get_tasklist_prompt_template
 from utils.States import StingerState, TaskList
 from utils.Tasking import expand_task_basic_info
+
+import docker
+from docker.errors import NotFound
+docker_socket = docker.from_env()
+try:
+    docker_socket.volumes.get("hackthebot")
+except NotFound:
+    docker_socket.volumes.create("hackthebot")
+except Exception as e:
+    print(f"Docker failure. Try Harder.\n{e}")
+
 
 agents = ["Recon",
           "Enum",
@@ -69,6 +80,7 @@ def initializer(state: StingerState):
 
 
 def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploit","StingerHandOff"]]:
+    p_tools = {"stinger":"PLACEHOLDER"}
     goto = ""
     agent_message = ""
     for index, task in enumerate(state["tasks"]):
@@ -86,7 +98,8 @@ def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploi
             update={
                 "next": goto,
                 "messages": agent_message,
-                "current_task": state["current_task"]
+                "current_task": state["current_task"],
+                "persistent_tools": p_tools
             }
         )
 
@@ -152,7 +165,7 @@ if __name__ == "__main__":
 #     }
 #   ],
 #   "hosts": {},
-#   "context": "Target machine IP Address is 10.10.61.165",
+#   "context": "Target machine IP Address is 10.10.173.153",
 #   "current_task": -1,
 #   "next": ""
 # }

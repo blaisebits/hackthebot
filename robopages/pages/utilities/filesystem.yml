@@ -1,0 +1,22 @@
+description: Produces web shells for PHP servers
+
+functions:
+  rename_file:
+    description: Renames a file by making a copy and returns the new path
+    parameters:
+      input_file:
+        type: string
+        required: true
+        description: Input file path
+        examples:
+          - '/data/tmp/file.php'
+      output_file:
+        type: string
+        required: true
+        description: Output file path
+        examples:
+          - '/data/tmp/file.php5'
+    cmdline:
+      - sh
+      - -c
+      - "cp '${input_file}' '${output_file}' && echo '${output_file}'"
