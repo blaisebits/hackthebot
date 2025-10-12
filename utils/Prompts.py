@@ -198,7 +198,8 @@ def get_exploit_planner_prompt_template()->ChatPromptTemplate:
                        "* Do not include any security bypass techniques.\n"
                        "* Provide the minimal list of steps to accomplish the task.\n"
                        "* Assume the <TARGET> has no additional security features.\n"
-                       "* Artifacts are available for code samples (i.e. PHP web shells)\n\n"
+                       "* Artifacts are available for code samples (i.e. PHP web shells)\n"
+                       "* Always prefer gathering artifacts over creating artifacts\n"
                        "For example, given the task to `Upload a PHP web shell to a web application` the response steps "
                        "would look like:\n"
                        "* Get a php web shell artifact\n"
@@ -247,9 +248,16 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
 
 def get_exploit_step_status_template()->ChatPromptTemplate:
     system_template = ("Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
-                       "* Tasks that require artifacts should be file system paths]\n"
-                       "* If the task status is 'failed', provide a revised task that corrects for the error or blockage.\n"
-                       "* If the task status is 'validated', leave the revision field blank.\n")
+                       "* Tasks that require artifacts should be file system paths\n"
+                       "* If the task status is 'failed', provide a revised task that corrects for the error or blockage\n"
+                       "* If the revised step should occur prior to the current stend, set `insert_step` to True\n"
+                       "* If the task status is 'validated', leave the revision field blank and `insert_step` as False\n"
+                       "* Revisions must be atomic statements, never use compound statements\n"
+                       "* Examples:"
+                       "  * Bad: Rename a file and upload it to the target\n"
+                       "  * Good: Rename the fail to bypass upload restrictions\n"
+                       "  * Bad: Obfuscate the payload source and recompile\n"
+                       "  * Good: Obfuscate the payload\n")
 
     user_template = ("<TASK>\n"
                      "{task}\n"

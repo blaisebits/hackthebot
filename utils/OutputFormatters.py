@@ -28,6 +28,7 @@ class ExploitSuggestions(BaseModel):
 class ExploitStepStatus(BaseModel):
     status: Literal["validated", "failed"] = Field(description="The status of the Exploit Step. Validated if successful, failed if unsuccessful")
     revision: str = Field(description="The revised version of the task adjusted for previous errors. Leave Blank if status is validated.")
+    insert_step: bool = Field(description="Set to true if new step should be occur before the current step.")
 
 ############################################################
 ##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES ####

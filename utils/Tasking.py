@@ -1,3 +1,5 @@
+from typing import List
+
 from utils.OutputFormatters import TaskBasicInfo
 from utils.States import Task, StingerState, ExploitTask, ExploitStep
 
@@ -21,6 +23,7 @@ def expand_task_basic_info(x: TaskBasicInfo) -> Task:
         verdict= None
     )
 
+## Exploit helpers
 def expand_exploit_suggestion(target_ip:str, task: str) -> ExploitTask:
     return ExploitTask(
         task= task,
@@ -50,6 +53,7 @@ def get_current_exploit_task(state: StingerState) -> int:
 
     return -1
 
+##Output format helpers
 def format_tool_output(tools:list[str], outputs:list[dict]) -> dict:
     """
     Takes in a list of tools and list of outputs and returns a single dictionary
@@ -64,3 +68,4 @@ def format_tool_output(tools:list[str], outputs:list[dict]) -> dict:
         x["tool"] = outputs[i]
 
     return x
+

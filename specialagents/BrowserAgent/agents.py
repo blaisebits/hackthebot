@@ -10,27 +10,6 @@ _AGENT_NAME="BrowserAgent"
 _AGENT_MAPPING=["Recon","Enum","Exploit"]
 _AGENT_DESCRIPTION="Provides access to a fully functional web browser, handling task such as browsing, navigating, uploading or downloading files."
 
-def output_format(result, agent_messages):
-    output: str = f"{_AGENT_NAME}:\n"
-    for m in result["messages"]:
-        if m.type == "human" or m.type == "tool":
-            output += f"{m.content}\n"
-            agent_messages.append(m)
-        elif m.type == "ai":  # dirty check for AI content structure
-            if isinstance(m.content, str):
-                output += f"{m.content}\n"
-                agent_messages.append(m)
-            elif isinstance(m.content, list):
-                if isinstance(m.content[0], str):
-                    output += f"{m.content[0]}\n"
-                    agent_messages.append(m)
-                elif isinstance(m.content[0], dict):
-                    output += f"{m.content[0]["text"]}\n"
-                    agent_messages.append(m)
-        else:
-            agent_messages.append(m)  # catch all
-    return output, agent_messages
-
 async def browser_wrapper(state: StingerState):
     agent:PersistentBrowserAgent = None
     agent_messages:list = []
@@ -51,11 +30,12 @@ async def browser_wrapper(state: StingerState):
         state["persistent_tools"][_AGENT_NAME] = { session_name: agent }
     agent_messages.append(AIMessage(f"{_AGENT_NAME}: Using browser session '{session_name}"))
 
+    task:Task = state["tasks"][state["current_task"]]
+
     # Extract task from EXPLOIT tasks
-    if state["tasks"][state["current_task"]]["agent"] == "Exploit":
+    if task["agent"] == "Exploit":
         ## DO EXPLOIT (agent) STUFF
-        task:Task = state["tasks"][state["current_task"]]
-        task_output:ExploitTask = task["output"][0] # TODO Fix to properly target ExploitTask, not [0]
+        task_output:ExploitTask = task["output"][get_current_exploit_task(state)]
         step_index:int = task_output["current_step"]
         # step:ExploitStep = task_output["steps"][step_index]
         step_task = task_output["steps"][step_index]["step_task"]
@@ -64,7 +44,6 @@ async def browser_wrapper(state: StingerState):
         exploit_task_index: int = get_current_exploit_task(state)
         browser_task = f"{step_task}\n{build_exploit_task_context(state, exploit_task_index)}"
         result = await agent.execute_task(browser_task)
-        state["tasks"][current_task]["output"][0]["steps"][step_index]["tool"] += [_AGENT_NAME]
         ### TODO Need output logic moved from line 59 here
         output, agent_messages = output_format(result, agent_messages)
         state["tasks"][current_task]["output"][0]["steps"][step_index]["output"] += [result]
