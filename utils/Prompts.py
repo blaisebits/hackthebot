@@ -190,22 +190,24 @@ def get_exploit_planner_prompt_template()->ChatPromptTemplate:
     """Exploit Agent prompt template to suggest exploits
     Takes Task, Target, & Context"""
     system_template = ("You are an expert cybersecurity agent specializing in planning exploits for initial access to a target.\n"
-                       "Your primary job is to analyze the <TASK> and <TARGET> data to plan the steps necessary to complete the exploit task.\n"
+                       "Your primary job is to think critically while analyzing the <TASK> and <TARGET> data to plan the steps necessary to complete the exploit task.\n"
                        "Additional <CONTEXT> may be provided for previously failed exploit attempts that could be modified or avoided.\n"
                        "Responses should provide a list of steps and the reason for each step.\n"
                        "Conditions for planning steps:\n"
                        "* All steps should be constructed to be performed by calling tools.\n"
-                       "* Do not include any security bypass techniques.\n"
-                       "* Provide the minimal list of steps to accomplish the task.\n"
-                       "* Assume the <TARGET> has no additional security features.\n"
+                       "* Do not include any security bypass steps i.e. double file extensions, obfuscating code\n"
+                       "* Provide a condensed list of the minimal steps to accomplish the task\n"
+                       "* Assume the <TARGET> has no security features.\n"
                        "* Artifacts are available for code samples (i.e. PHP web shells)\n"
                        "* Always prefer gathering artifacts over creating artifacts\n"
+                       "* URLS and file paths should be fully qualified\n"
+                       "* The final step must always be a test to verify command execution\n"
                        "For example, given the task to `Upload a PHP web shell to a web application` the response steps "
                        "would look like:\n"
-                       "* Get a php web shell artifact\n"
-                       "* Navigate to the web application upload page\n"
-                       "* Upload the PHP web shell\n"
-                       "* Perform a web request to test the webshell")
+                       "- Get a php web shell artifact\n"
+                       "- Navigate to the web application upload page at http://<x.x.x.x>/<upload_page>\n"
+                       "- Upload the PHP web shell\n"
+                       "- Test webshell to confirm command execution")
 
     user_template = ("<TASK>\n"
                      "{exploit_task}\n"
@@ -247,17 +249,20 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
     )
 
 def get_exploit_step_status_template()->ChatPromptTemplate:
-    system_template = ("Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
-                       "* Tasks that require artifacts should be file system paths\n"
-                       "* If the task status is 'failed', provide a revised task that corrects for the error or blockage\n"
-                       "* If the revised step should occur prior to the current stend, set `insert_step` to True\n"
-                       "* If the task status is 'validated', leave the revision field blank and `insert_step` as False\n"
-                       "* Revisions must be atomic statements, never use compound statements\n"
-                       "* Examples:"
-                       "  * Bad: Rename a file and upload it to the target\n"
-                       "  * Good: Rename the fail to bypass upload restrictions\n"
-                       "  * Bad: Obfuscate the payload source and recompile\n"
-                       "  * Good: Obfuscate the payload\n")
+    system_template = ("You are the worlds best cyber security exploit crafter\n"
+                        "Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
+                        "* Tasks that require artifacts should be file system paths\n"
+                        "* If the task status is 'validated', leave the revision field blank\n"
+                        "* If the task status is 'failed', provide a revised task that corrects for the error or blockage\n"
+                        "* Consider the nature of the blockage, if the correction step needs to occur before the current task, set insert_step as True\n"
+                        "* Revised instructions should be a single task\n"
+                        "* Task should never be compound instructions\n"
+                        "  * Good Example: Rename the file to bypass upload restrictions\n"
+                        "  * Bad Example: Rename the file and Re-upload the new file\n"
+                        "  * Good Example: Trigger the C2 payload with Impacket WMIExec\n"
+                        "  * Bad Example: Upload the C2 payload and execute with Impacket WMIExec\n")
+
+
 
     user_template = ("<TASK>\n"
                      "{task}\n"

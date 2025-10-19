@@ -42,11 +42,9 @@ async def browser_wrapper(state: StingerState):
 
         ## create a context for the task
         exploit_task_index: int = get_current_exploit_task(state)
-        browser_task = f"{step_task}\n{build_exploit_task_context(state, exploit_task_index)}"
+        browser_task = f"<TASK>\n{step_task}\n</TASK>\n<CONTEXT>\n{build_exploit_task_context(state, exploit_task_index)}</CONTEXT>"
         result = await agent.execute_task(browser_task)
-        ### TODO Need output logic moved from line 59 here
-        output, agent_messages = output_format(result, agent_messages)
-        state["tasks"][current_task]["output"][0]["steps"][step_index]["output"] += [result]
+        state["tasks"][current_task]["output"][0]["steps"][step_index]["output"] += [result["messages"][-1].text()]
 
     #extract tasks for all other agents
     else:
@@ -54,17 +52,7 @@ async def browser_wrapper(state: StingerState):
         task: str = task_obj["task"]
 
         result = await agent.execute_task(task)
-        state["tasks"][current_task]["tool"] += [_AGENT_NAME]
-        output, agent_messages = output_format(result, agent_messages)
-        state["tasks"][current_task]["output"] += [output]
-    # agent_messages.append(result["messages"])
-
-    # pick = {
-    #     "BrowserAgentResult": result,
-    #     "AgentMessages": agent_messages
-    # }
-    # with open('output.pickle', 'wb') as file:
-    #     pickle.dump(pick, file)
+        state["tasks"][current_task]["output"] += [result["messages"][-1].text()]
 
 
     return {

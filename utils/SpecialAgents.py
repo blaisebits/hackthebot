@@ -67,6 +67,7 @@ class SpecialAgentLoader:
             data += f"* {agent}: {self.agents[agent].description}\n"
         return data
 
+SpecialAgents = SpecialAgentLoader()
 
 if __name__ == "__main__":
     test = SpecialAgentLoader()

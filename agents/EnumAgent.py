@@ -8,10 +8,16 @@ from utils.HostUpdate import host_update, get_stub_host
 from utils.LLMHelpers import llm_invoke_retry
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_enum_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
+from utils.SpecialAgents import SpecialAgents
 from utils.States import StingerState
 from utils.Tasking import get_new_task
+from utils.Tooling import RoboPagesTools
 
-rb_tools = Configuration["robopages_tools"]
+rb = RoboPagesTools
+rb_tools = rb.get_tools()
+
+sp = SpecialAgents
+
 llm = Configuration["llm"]
 enum_tool_node = ToolNode(rb_tools)
 
