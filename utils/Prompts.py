@@ -277,3 +277,23 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
             ("user", user_template)
         ]
     )
+
+def get_exploit_payload_crafter_template()->ChatPromptTemplate:
+    system_template = ("You are the worlds best cyber security exploit crafter.\n"
+                       "Your job is to create an `initial access exploit` for the target base on the information <CONTEXT>.\n"
+                       "The `initial access exploit` must be a repeatable command that executes at least one system command.\n"
+                       "Tool calls may be provided to generate the `initial access exploit`.\n")
+
+    user_template = ("<TASK>\n"
+                     "{task}\n"
+                     "</TASK>\n"
+                     "<CONTEXT>\n"
+                     "{context}\n"
+                     "</CONTEXT>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )

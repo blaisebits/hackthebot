@@ -4,6 +4,10 @@ from utils.States import StingerState, ExploitTask, ExploitStep
 
 
 def build_exploit_task_context(state:StingerState, exploit_task_index:int) -> str:
+    """
+    Takes the state and the exploit task index
+    returns a formatted string of all the steps' outputs
+    """
     exploit_task: ExploitTask = state["tasks"][state["current_task"]]["output"][exploit_task_index]
     exploit_steps: List[ExploitStep] = exploit_task["steps"]
     current_step: int = exploit_task["current_step"]

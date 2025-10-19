@@ -40,6 +40,7 @@ class ExploitTask(TypedDict):
     current_step: int
     steps: List[ExploitStep]
     target_ip: str  # The target host IP address
+    initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""

@@ -31,10 +31,11 @@ def expand_exploit_suggestion(target_ip:str, task: str) -> ExploitTask:
         verdict= None,
         current_step = 0,
         steps= [],
-        target_ip= target_ip
+        target_ip= target_ip,
+        initial_access_exploit=""
     )
 
-def get_exploit_step(step_task: str)-> ExploitStep:
+def create_exploit_step(step_task: str)-> ExploitStep:
     return ExploitStep(
         step_task= step_task,
         status= "new",
