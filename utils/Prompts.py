@@ -163,7 +163,7 @@ def get_exploit_suggestion_prompt_template()->ChatPromptTemplate:
                        "* Negative Example:\n"
                        "** Create an obfuscated PHP web shell with multiple file extensions\n"
                        "** Use Python to create a ssh client to brute force a private key\n"
-                       "** Brute for SNMP Community strings in base64"
+                       "** Brute for SNMP Community strings in base64\n"
                        "Responses should be in the form:\n"
                        "EXPLOIT: The exploit path to be investigated\n"
                        "REASON: The reason for the suggested EXPLOIT\n")
@@ -231,6 +231,7 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
     system_template = ("You are an expert cybersecurity agent specializing in executing sequences of tasks to gain"
                        "initial accesses to a target system. Analyze the given <TASK> and determine the appropriate tool"
                        "to complete the task. Additional <CONTEXT> may be provided.\n"
+                       "* Choose appropriate file names for any tool calls."
                        "The `SpecialAgentCaller` tool can also be used to pass execution to one of the following agents:\n"
                        "{agents}")
 
@@ -240,6 +241,23 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
                      "<CONTEXT>\n"
                      "{context}\n"
                      "</CONTEXT>\n")
+
+    return ChatPromptTemplate(
+        [
+            ("system", system_template),
+            ("user", user_template)
+        ]
+    )
+
+def get_exploit_step_rce_check_prompt() -> ChatPromptTemplate:
+    system_template= ("You are a world class exploit analyzer. "
+                      "Check the <CONTEXT> of the request and determine if remote code execution has been achieved.\n"
+                      "Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), "
+                      "producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.")
+
+    user_template = ("<CONTEXT>\n"
+                     "{context}\n"
+                     "</CONTEXT>")
 
     return ChatPromptTemplate(
         [
@@ -280,9 +298,12 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
 
 def get_exploit_payload_crafter_template()->ChatPromptTemplate:
     system_template = ("You are the worlds best cyber security exploit crafter.\n"
-                       "Your job is to create an `initial access exploit` for the target base on the information <CONTEXT>.\n"
-                       "The `initial access exploit` must be a repeatable command that executes at least one system command.\n"
-                       "Tool calls may be provided to generate the `initial access exploit`.\n")
+                       "Your job is to create the code for an `initial access exploit` to the target based on the information <CONTEXT>.\n"
+                       "* Always be clear, concise, contextual, and consistent in your responses.\n"
+                       "* The `initial access exploit` must be a repeatable python code that executes at least one system command.\n"
+                       "* Specialized Tool calls may be provided to provide pre-generated `initial access exploit` code.\n"
+                       "* Generated code should only use standard python libraries.\n"
+                       "* Generated code should be tested with the `python_exec` tool.")
 
     user_template = ("<TASK>\n"
                      "{task}\n"
@@ -297,3 +318,4 @@ def get_exploit_payload_crafter_template()->ChatPromptTemplate:
             ("user", user_template)
         ]
     )
+

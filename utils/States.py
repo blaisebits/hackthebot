@@ -57,6 +57,12 @@ class TaskList(TypedDict):
     """Used for structured output"""
     tasks: List[Task]
 
+class WorkingMemory(TypedDict):
+    caller: str
+    messages: Annotated[list[AnyMessage], add_messages]
+    data: Any
+
+
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     hosts: Dict[str, Host] # e.g. 192.168.3.4
@@ -65,6 +71,8 @@ class StingerState(TypedDict):
     context: List[str|Host]
     persistent_tools: Dict[str, Any] #{agent_name:tool}
     next: str
+    working_memory: WorkingMemory #Only used for internal primary agent information
+
 
 class StingerRouter(TypedDict):
     """Agent to route to next. If no workers needed, route to FINISH."""

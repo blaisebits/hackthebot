@@ -36,6 +36,9 @@ def expand_exploit_suggestion(target_ip:str, task: str) -> ExploitTask:
     )
 
 def create_exploit_step(step_task: str)-> ExploitStep:
+    """
+    Takes in step task string and returns ExploitStep
+    """
     return ExploitStep(
         step_task= step_task,
         status= "new",

@@ -30,6 +30,9 @@ class ExploitStepStatus(BaseModel):
     revision: str = Field(description="The revised version of the task adjusted for previous errors. Leave Blank if status is validated.")
     insert_step: bool = Field(description="True if the revision should be executed prior to the current step.")
 
+class ExploitRceCheck(BaseModel):
+    rce: bool = Field(description="True of code execution has been completed")
+
 ############################################################
 ##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES ####
 ############################################################

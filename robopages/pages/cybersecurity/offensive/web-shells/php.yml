@@ -1,14 +1,17 @@
 description: Produces web shells for PHP servers
 
 functions:
-  # the function name
   get_php_webshell_dysco_artifact:
     description: Return an PHP webshell initial access payload
     parameters:
       output_file:
         type: string
         required: true
-        description: Output file name
+        description: Output file name and extension
+        examples:
+          - 'dysco_webshell.php'
+          - 'webshell.phtml'
+          - 'dysco_php_webshell.php5'
     cmdline:
       - sh
       - -c
