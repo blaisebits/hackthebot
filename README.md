@@ -1,5 +1,5 @@
 # HackTheBot
-This is a fun little project to learn LangChain/Graph. The goal will be to solve HackTheBox challenges. Trust none of this code, it lies.
+This is a fun little project to learn LangChain/Graph. The goal will be to solve HackTheBox challenges. Trust none of this code, it lies. 🍰
 
 The end goal will be to have Stinger, the supervising agents, create and assign tasks to the four primary agents; Recon, Enum, Exploit, and PostEx.
 
