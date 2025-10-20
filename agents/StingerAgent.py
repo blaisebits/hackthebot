@@ -155,28 +155,3 @@ if __name__ == "__main__":
 
     stinger_agent(testing_state)
     # stinger_graph.invoke(base_state)
-
-# ROOTME testing state
-# {
-#   "messages": [
-#     {
-#       "content": "* Scan the target, how many ports are open?\n* What version of Apache is running?\n* What service is running on port 22?\n* Use GoBuster to find hidden directories. Which directories are hidden?\n* Examine discovered directories. Which URLS have upload forms?\n* Get a remote code execution from a web shell.",
-#       "type": "human"
-#     }
-#   ],
-#   "hosts": {},
-#   "context": "Target machine IP Address is 10.201.21.13",
-#   "current_task": -1,
-#   "next": ""
-# }
-
-
-#Blank State
-# {
-#   "messages": [],
-#   "hosts": {},
-#   "tasks": [],
-#   "context": "",
-#   "current_task": -1
-#   "next": ""
-# }
