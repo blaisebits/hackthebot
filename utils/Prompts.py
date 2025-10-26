@@ -231,9 +231,15 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
     system_template = ("You are an expert cybersecurity agent specializing in executing sequences of tasks to gain"
                        "initial accesses to a target system. Analyze the given <TASK> and determine the appropriate tool"
                        "to complete the task. Additional <CONTEXT> may be provided.\n"
-                       "* Choose appropriate file names for any tool calls."
+                       "* Choose appropriate file names for any tool calls.\n"
+                       "------------------------------------------------------\n"
+                       "Definitions:\n"
+                       "Initial Access Exploit - A single python script to replicate an exploit for executing a single command on a target."
+                       "Look for tool names that end in `initial_access_exploit` that will autogenerate the required code.\n"
+                       "------------------------------------------------------\n"
                        "The `SpecialAgentCaller` tool can also be used to pass execution to one of the following agents:\n"
-                       "{agents}")
+                       "{agents}\n"
+                       "------------------------------------------------------\n")
 
     user_template = ("<TASK>\n"
                      "{step}\n"
@@ -253,7 +259,8 @@ def get_exploit_step_rce_check_prompt() -> ChatPromptTemplate:
     system_template= ("You are a world class exploit analyzer. "
                       "Check the <CONTEXT> of the request and determine if remote code execution has been achieved.\n"
                       "Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), "
-                      "producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.")
+                      "producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.\n"
+                      "You must always perform the `ExploitRceCheck` tool call.")
 
     user_template = ("<CONTEXT>\n"
                      "{context}\n"
@@ -269,6 +276,7 @@ def get_exploit_step_rce_check_prompt() -> ChatPromptTemplate:
 def get_exploit_step_status_template()->ChatPromptTemplate:
     system_template = ("You are the worlds best cyber security exploit crafter\n"
                         "Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
+                        "* You must always call the `ExploitStepStatus` tool\n"
                         "* Tasks that require artifacts should be file system paths\n"
                         "* If the task status is 'validated', leave the revision field blank\n"
                         "* If the task status is 'failed', provide a revised task that corrects for the error or blockage\n"

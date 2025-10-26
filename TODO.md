@@ -42,6 +42,8 @@
 * [ ] Check tasking data for potential answers before tool calls.
 * [ ] Move `OutputFormatters` to a yaml file for dynamic generation.
 
+# Potential Future components
+* Really sick React UI thingy: [ReactFlow](https://reactflow.dev/)
 
 # Potential future issues
 * Handling for multi-system CTFs
