@@ -1,10 +1,12 @@
-from typing import List
-
 from langchain_core.messages import ToolMessage
 
 from utils.OutputFormatters import TaskBasicInfo
 from utils.States import Task, StingerState, ExploitTask, ExploitStep
 
+def annoying_debug(x):
+    print("="*70)
+    print(x)
+    print("="*70)
 
 def get_new_task(agent: str, tasks: [Task]) -> int:
     """Get the index to the first new task assigned to the agent. Returns -1 on no task found."""
@@ -60,20 +62,21 @@ def get_current_exploit_task(state: StingerState) -> int:
     return -1
 
 ##Output format helpers
-def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> dict:
+def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> list[tuple[str, ToolMessage | str]]:
     """
     Takes in a list of tools and list of outputs and returns a single dictionary
     for inserting into LLM context.
     """
-    # print("***************************************************************************")
-    # print(tools)
-    # print(outputs)
-    # print("***************************************************************************")
-    x:str = ""
-    for i, tool in enumerate(tools):
-        # x["tool"] = outputs[i]
-        output = outputs[i].text() if isinstance(outputs[i], ToolMessage) else outputs[i]
-        x += f"{tool} -> {output}"
+    # TODO This shit is borked
+    # if tool_call -> get args
+    # else -> call .text()
+    # if ai message
+    #   if tool_calls
+    # x:str = ""
+    # for i, tool in enumerate(tools):
+    #     # x["tool"] = outputs[i]
+    #     output = outputs[i].text() if outputs[i]["role"] == 'tool' else outputs[i]
+    #     x += f"{tool} -> {output}"
 
-    return x
+    return list(zip(tools, outputs))
 

@@ -29,6 +29,7 @@ class ExploitStepStatus(BaseModel):
     status: Literal["validated", "failed"] = Field(description="The status of the Exploit Step. Validated if successful, failed if unsuccessful")
     revision: str = Field(description="The revised version of the task adjusted for previous errors. Leave Blank if status is validated.")
     insert_step: bool = Field(description="True if the revision should be executed prior to the current step.")
+    rce: bool = Field(description="True of code execution has occurred with proof of command output")
 
 class ExploitRceCheck(BaseModel):
     rce: bool = Field(description="True of code execution has been completed")

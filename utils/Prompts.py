@@ -255,38 +255,27 @@ def get_exploit_step_prompt_template()->ChatPromptTemplate:
         ]
     )
 
-def get_exploit_step_rce_check_prompt() -> ChatPromptTemplate:
-    system_template= ("You are a world class exploit analyzer. "
-                      "Check the <CONTEXT> of the request and determine if remote code execution has been achieved.\n"
-                      "Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), "
-                      "producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.\n"
-                      "You must always perform the `ExploitRceCheck` tool call.")
-
-    user_template = ("<CONTEXT>\n"
-                     "{context}\n"
-                     "</CONTEXT>")
-
-    return ChatPromptTemplate(
-        [
-            ("system", system_template),
-            ("user", user_template)
-        ]
-    )
-
 def get_exploit_step_status_template()->ChatPromptTemplate:
-    system_template = ("You are the worlds best cyber security exploit crafter\n"
-                        "Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
+    system_template = ("You are a world class exploit analyzer. Use the following criteria to determine the values"
+                       " to call the `ExploitStepStatus` tool.\n"
+                       "Given the exploit <TASK>, analyze the <OUTPUT> and determine the status of task.\n"
+                       "Check the <OUTPUT> of the request and determine if remote code execution has been achieved.\n"
+                       "Definition: Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), "
+                       "producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.\n"
                         "* You must always call the `ExploitStepStatus` tool\n"
                         "* Tasks that require artifacts should be file system paths\n"
                         "* If the task status is 'validated', leave the revision field blank\n"
                         "* If the task status is 'failed', provide a revised task that corrects for the error or blockage\n"
+                        "  * Analyze the <CONTEXT> for historical attempts to avoid trying previously failed revisions.\n"
                         "* Consider the nature of the blockage, if the correction step needs to occur before the current task, set insert_step as True\n"
                         "* Revised instructions should be a single task\n"
-                        "* Task should never be compound instructions\n"
-                        "  * Good Example: Rename the file to bypass upload restrictions\n"
-                        "  * Bad Example: Rename the file and Re-upload the new file\n"
-                        "  * Good Example: Trigger the C2 payload with Impacket WMIExec\n"
-                        "  * Bad Example: Upload the C2 payload and execute with Impacket WMIExec\n")
+                        "* Task should never be compound instructions, see the examples below:\n"
+                        "  * Good Example(Atomic Statement): Rename the file to bypass upload restrictions\n"
+                        "  * Bad Example(Compound AND statement): Rename the file and Re-upload the new file to bypass upload restrictions\n"
+                        "  * Good Example(Atomic Statement): Trigger the C2 payload with Impacket WMIExec\n"
+                        "  * Bad Example(Compound AND statement): Upload the C2 payload and execute with Impacket WMIExec\n"
+                        "  * Good Example(Atomic Statement): Rename the file to .xxx to .yyy\n"
+                        "  * Bad Example(Compound OR statement): Rename the file to .xxx, .yyy, or .zzz\n")
 
 
 
@@ -295,27 +284,7 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                      "</TASK>\n"
                      "<OUTPUT>\n"
                      "{output}\n"
-                     "</OUTPUT>\n")
-
-    return ChatPromptTemplate(
-        [
-            ("system", system_template),
-            ("user", user_template)
-        ]
-    )
-
-def get_exploit_payload_crafter_template()->ChatPromptTemplate:
-    system_template = ("You are the worlds best cyber security exploit crafter.\n"
-                       "Your job is to create the code for an `initial access exploit` to the target based on the information <CONTEXT>.\n"
-                       "* Always be clear, concise, contextual, and consistent in your responses.\n"
-                       "* The `initial access exploit` must be a repeatable python code that executes at least one system command.\n"
-                       "* Specialized Tool calls may be provided to provide pre-generated `initial access exploit` code.\n"
-                       "* Generated code should only use standard python libraries.\n"
-                       "* Generated code should be tested with the `python_exec` tool.")
-
-    user_template = ("<TASK>\n"
-                     "{task}\n"
-                     "</TASK>\n"
+                     "</OUTPUT>\n"
                      "<CONTEXT>\n"
                      "{context}\n"
                      "</CONTEXT>\n")
@@ -326,4 +295,5 @@ def get_exploit_payload_crafter_template()->ChatPromptTemplate:
             ("user", user_template)
         ]
     )
+
 
