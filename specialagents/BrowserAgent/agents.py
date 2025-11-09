@@ -35,7 +35,8 @@ async def browser_wrapper(state: StingerState):
     # Extract task from EXPLOIT tasks
     if task["agent"] == "Exploit":
         ## DO EXPLOIT (agent) STUFF
-        task_output:ExploitTask = task["output"][get_current_exploit_task(state)]
+        current_exploit_task:int = get_current_exploit_task(state)
+        task_output:ExploitTask = task["output"][current_exploit_task]
         step_index:int = task_output["current_step"]
         # step:ExploitStep = task_output["steps"][step_index]
         step_task = task_output["steps"][step_index]["step_task"]
@@ -44,7 +45,7 @@ async def browser_wrapper(state: StingerState):
         exploit_task_index: int = get_current_exploit_task(state)
         browser_task = f"<TASK>\n{step_task}\n</TASK>\n<CONTEXT>\n{build_exploit_task_context(state, exploit_task_index)}</CONTEXT>"
         result = await agent.execute_task(browser_task)
-        state["tasks"][current_task]["output"][0]["steps"][step_index]["output"] += [result["messages"][-1].text()]
+        state["tasks"][current_task]["output"][current_exploit_task]["steps"][step_index]["output"] += [result["messages"][-1].text()]
 
     #extract tasks for all other agents
     else:

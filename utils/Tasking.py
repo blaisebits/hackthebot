@@ -67,16 +67,6 @@ def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> list[t
     Takes in a list of tools and list of outputs and returns a single dictionary
     for inserting into LLM context.
     """
-    # TODO This shit is borked
-    # if tool_call -> get args
-    # else -> call .text()
-    # if ai message
-    #   if tool_calls
-    # x:str = ""
-    # for i, tool in enumerate(tools):
-    #     # x["tool"] = outputs[i]
-    #     output = outputs[i].text() if outputs[i]["role"] == 'tool' else outputs[i]
-    #     x += f"{tool} -> {output}"
 
     return list(zip(tools, outputs))
 
