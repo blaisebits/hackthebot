@@ -17,7 +17,8 @@ def build_exploit_task_context(state:StingerState, exploit_task_index:int) -> st
     for i in range(current_step):
         i_task = exploit_steps[i]["step_task"]
         i_output = exploit_steps[i]["output"]
-        context += f"* {i_task}:\n{i_output}\n\n"
+        if len(i_output) != 0:
+            context += f"* {i_task}:\n{i_output}\n\n"
 
     return context
 

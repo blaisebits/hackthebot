@@ -20,10 +20,10 @@ class TaskBasicInfoList(BaseModel):
     tasks: List[TaskBasicInfo] = Field(description="A list of the tasks with basic information.")
 
 class ExploitStep(BaseModel):
-    steps: List[str] = Field(description="A list of steps to execute, in order, to exploit a target for remote code execution.")
+    steps: List[str] = Field(description="The steps to execute, in order, to exploit a target for remote code execution.")
 
 class ExploitSuggestions(BaseModel):
-    tasks: List[str] = Field(description="A list of exploitation methods that could potentially be used to exploit the target for remote code execution.")
+    tasks: List[str] = Field(description="Exploitation methods that could potentially be used to exploit the target for remote code execution.")
 
 class ExploitStepStatus(BaseModel):
     status: Literal["validated", "failed"] = Field(description="The status of the Exploit Step. Validated if successful, failed if unsuccessful")

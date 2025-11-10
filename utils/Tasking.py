@@ -62,11 +62,19 @@ def get_current_exploit_task(state: StingerState) -> int:
     return -1
 
 ##Output format helpers
-def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> list[tuple[str, ToolMessage | str]]:
+def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> str:
     """
     Takes in a list of tools and list of outputs and returns a single dictionary
-    for inserting into LLM context.
+    for inserting into LLM context. Ignores tasks with empty output.
     """
 
-    return list(zip(tools, outputs))
+    data:str = ""
+
+    for index, tool in enumerate(tools):
+        if len(outputs[index]) != 0:
+            data += f"* {tool} => {outputs[index]}\n"
+
+    return data
+
+    # return list(zip(tools, outputs))
 
