@@ -63,7 +63,10 @@ def get_output_format_prompt_template()->ChatPromptTemplate:
                        "ACTION: The action to be taken\n"
                        "REASON: The reason for the action\n")
 
-    user_template = ("<TOOL OUTPUT>\n"
+    user_template = ("<TOOL INPUT>\n"
+                     "{tool_input}\n"
+                     "<TOOL INPUT>\n"
+                     "<TOOL OUTPUT>\n"
                      "{tool_output}\n"
                      "</TOOL OUTPUT>\n")
 
@@ -77,7 +80,8 @@ def get_output_format_prompt_template()->ChatPromptTemplate:
 def get_task_answer_prompt_template()->ChatPromptTemplate:
     """Prompt for validators to confirm if a task was completed and answered appropriately"""
     system_template = ("Examine the assigned <TASK> and use the <HOST DATA> to determine if the task question can be answered correctly.\n"
-                       "If the question cannot be answered using the <HOST DATA>, leave the answer response blank.\n")
+                       "If the question cannot be answered using the <HOST DATA>, leave the answer response blank.\n"
+                       "")
 
     user_template = ("<TASK>\n"
                      "{task}\n"
@@ -200,7 +204,12 @@ def get_exploit_planner_prompt_template()->ChatPromptTemplate:
                        "* Assume the <TARGET> has no security features.\n"
                        "* Artifacts are available for code samples (i.e. PHP web shells)\n"
                        "* Always prefer gathering artifacts over creating artifacts\n"
-                       "* URLS and file paths should be fully qualified\n"
+                       "* URLS and file paths should be fully qualified paths:\n"
+                       "  * Examples:\n"
+                       "    * http://<SITE>/PATH/TO/TARGET\n"
+                       "    * c:\windows\system32\cmd.exe\n"
+                       "    * \\server.domain.local\D$\data_examples\n"
+                       "    * ftp://1.2.3.4/projects/secrets.txt\n"
                        "* The final step must always be a test to verify command execution\n"
                        "For example, given the task to `Upload a PHP web shell to a web application` the response steps "
                        "would look like:\n"

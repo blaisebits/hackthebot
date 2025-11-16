@@ -114,14 +114,18 @@ def recon_router(state: StingerState):
     return "ReconHandoff"
 
 def output_formatter(state: StingerState):
-    last_message = state["messages"][-1]
+    second_last_message:AIMessage = state["messages"][-2]
+    last_message: ToolMessage = state["messages"][-1]
+
     if last_message.type == 'tool':
         llm_output_format_selection = llm.bind_tools(tool_parsers)
+        tool_intput = second_last_message.tool_calls
         tool_output = last_message.content
 
         output_format_prompt_template = get_output_format_prompt_template()
         output_format_prompt = output_format_prompt_template.invoke(
             {
+                "tool_input": tool_intput,
                 "tool_output": tool_output
             }
         )
