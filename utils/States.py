@@ -1,4 +1,4 @@
-from typing import Annotated, List, Dict, Literal, Optional, Any
+from typing import Annotated, List, Literal, Optional, Any
 from typing_extensions import TypedDict
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
@@ -18,12 +18,26 @@ class TaskAnswer(TypedDict):
     answer: str
     reason: str
 
+class ExploitTool(TypedDict):
+    name: Annotated[str, ..., "The name of the toolcall"]
+    args: Annotated[dict, ..., "Exact tool call arguments for exploit"]
+
+class ExploitCode(TypedDict):
+    langauge: Annotated[str, ..., "The programming language used for the exploit code"]
+    code: Annotated[str, ..., "The exploit code"]
+
+class InitialAccessExploit(TypedDict):
+    tool: Optional[Annotated[ExploitTool, ..., "Tool call that can be used for initial access"]]
+    code: Optional[Annotated[ExploitCode, ..., "Code that can be used for initial access"]]
+    user: Annotated[str, ..., "The username context that executes the exploit code"]
+    permissions: Annotated[Literal["low","user","admin","root"], ..., "The relative permissions of the user"]
+
 class Host(TypedDict):
     """Single network entity"""
     ip_address: Annotated[str, ..., "IP address of the host"]
     hostname: Annotated[List[str], ..., "DNS hostname associated to the host."]
-    ports: Annotated[Dict[str, Port], ..., "Mapping of ports to their attributes."]
-    initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
+    ports: Annotated[dict[str, Port], ..., "Mapping of ports to their attributes."]
+    initial_access_exploit: Annotated[dict[int, InitialAccessExploit], ..., "Maps port integer to an initial access exploit."]
     verdicts: Annotated[List[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
 
 class ExploitStep(TypedDict):
@@ -31,7 +45,7 @@ class ExploitStep(TypedDict):
     step_task: str
     status: Literal["new", "working", "validated", "failed", "skipped"]
     tool: List[str] # The tool(s) used to complete the task
-    output: List[Dict] # output_formatted tool call output
+    output: List[dict] # output_formatted tool call output
 
 class ExploitTask(TypedDict):
     task: str
@@ -49,7 +63,7 @@ class Task(TypedDict):
     status: Literal["new", "working", "validated"]
     agent: Literal["Recon", "Enum", "Exploit", "PostEx"]
     tool: List[str] # The tool(s) used to complete the task
-    output: List[Dict|ExploitTask] # Formatted Tool output or ExploitTask
+    output: List[dict|ExploitTask] # Formatted Tool output or ExploitTask
     target_ip: str # The target host IP address
     verdict: Optional[TaskAnswer]|None # Answer for Task
 
@@ -57,21 +71,16 @@ class TaskList(TypedDict):
     """Used for structured output"""
     tasks: List[Task]
 
-class WorkingMemory(TypedDict):
-    caller: str
-    messages: Annotated[list[AnyMessage], add_messages]
-    data: Any
-
-
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: Dict[str, Host] # e.g. 192.168.3.4
+    hosts: dict[str, Host] # e.g. 192.168.3.4
     tasks: List[Task]
     current_task: int  # points to the list index for tasks field
     context: List[str|Host]
-    persistent_tools: Dict[str, Any] #{agent_name:tool}
-    next: str
-    working_memory: WorkingMemory #Only used for internal primary agent information
+    persistent_tools: dict[str, Any] #{agent_name:tool}
+    next: str #Used for routing to primary agents
+    working_memory: str #Only used for internal primary agent information
+    longterm_memory: str #only here just in case it's needed
 
 
 class StingerRouter(TypedDict):

@@ -1,8 +1,6 @@
 from typing import List
 
-from langchain.chains.question_answering.map_reduce_prompt import messages
-
-from utils.States import StingerState, ExploitTask, ExploitStep, WorkingMemory
+from utils.States import StingerState, ExploitTask, ExploitStep
 
 def build_exploit_task_context(state:StingerState, exploit_task_index:int) -> str:
     """
@@ -21,10 +19,3 @@ def build_exploit_task_context(state:StingerState, exploit_task_index:int) -> st
             context += f"* {i_task}:\n{i_output}\n\n"
 
     return context
-
-def get_new_working_memory() -> WorkingMemory:
-    return {
-        "caller": "",
-        "messages": [],
-        "data": {}
-    }

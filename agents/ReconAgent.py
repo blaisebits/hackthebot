@@ -1,6 +1,6 @@
 from http.client import responses
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph import StateGraph, START, add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
@@ -12,7 +12,7 @@ from utils.LLMHelpers import llm_invoke_retry
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
 from utils.SpecialAgents import SpecialAgents
-from utils.States import StingerState, Host
+from utils.States import StingerState
 from utils.Tasking import get_new_task
 from utils.Tooling import RoboPagesTools
 

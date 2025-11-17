@@ -13,7 +13,7 @@ from utils.Configuration import Configuration
 from utils.LLMHelpers import llm_invoke_retry
 from utils.OutputFormatters import TaskBasicInfoList
 from utils.Prompts import get_tasklist_prompt_template
-from utils.States import StingerState, TaskList
+from utils.States import StingerState
 from utils.Tasking import expand_task_basic_info
 
 import docker

