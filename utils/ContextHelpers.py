@@ -12,7 +12,7 @@ def build_exploit_task_context(state:StingerState, exploit_task_index:int) -> st
     current_step: int = exploit_task["current_step"]
 
     context = "Previous Exploit steps:\n"
-    for i in range(current_step):
+    for i in range(current_step+1):
         i_task = exploit_steps[i]["step_task"]
         i_output = exploit_steps[i]["output"]
         if len(i_output) != 0:
