@@ -5,7 +5,7 @@ description: >
 
 functions:
   ffufai_default_scan:
-    description: Perform a default fuzzing scan against a web target
+    description: Perform a default fuzzing scan against a web target(EnumAgent)
     parameters:
       target:
         type: string
@@ -30,7 +30,7 @@ functions:
       - ${target}
 
   ffufai_full_scan:
-    description: Perform comprehensive fuzzing with AI analysis
+    description: Perform comprehensive fuzzing with AI analysis(EnumAgent)
     parameters:
       target:
         type: string

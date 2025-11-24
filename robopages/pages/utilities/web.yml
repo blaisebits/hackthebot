@@ -2,7 +2,7 @@ description: A set of web related utilities.
 
 functions:
   http_get:
-    description: Perform an HTTP GET request to a given URL.
+    description: Perform an HTTP GET request to a given URL.(AllAgents)
     parameters:
       user_agent:
         type: string
@@ -35,7 +35,7 @@ functions:
       - "${url}"
 
   http_post:
-    description: Perform an HTTP POST request to a given URL.
+    description: Perform an HTTP POST request to a given URL.(AllAgents)
     parameters:
       user_agent:
         type: string

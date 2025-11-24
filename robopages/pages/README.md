@@ -8,11 +8,13 @@ Like [man pages](https://en.wikipedia.org/wiki/Man_page) but for robots!
 
 ## Usage
 
-1. Install the robopages server by following the instructions in the [robopages-cli](https://github.com/dreadnode/robopages-cli) repository.
-2. [Download this repository](https://github.com/dreadnode/robopages/archive/refs/heads/main.zip) and copy it to your system `~/.robopages/` folder (or run the `robopages install` command).
-3. Start the server by running `robopages serve`.
-
-Your tools are now available at `http://localhost:8080/` for any LLM to use. Refer to the [robopages-cli](https://github.com/dreadnode/robopages-cli) repository for usage information and examples.
+### Function filtering
+You can filter functions by name or by keyword. Keywords are assigned in the function description as a comma separated list of strings.
+* ReconAgent
+* EnumAgent
+* ExploitAgent
+* PostExAgent
+* AllAgents
 
 ## Syntax
 

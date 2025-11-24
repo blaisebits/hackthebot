@@ -3,7 +3,7 @@ description: >
 
 functions:
   gobuster_directory_brute_force:
-    description: Perform a web server directory brute force to find hidden files and folders
+    description: Perform a web server directory brute force to find hidden files and folders(EnumAgent)
     parameters:
       target:
         type: string

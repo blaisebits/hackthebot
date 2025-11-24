@@ -2,7 +2,7 @@ description: httpx is a fast and multi-purpose HTTP toolkit that allows running 
 
 functions:
   httpx_tech_detect:
-    description: Run multiple HTTP probes on a target to fingerprint the web technology stack.
+    description: Run multiple HTTP probes on a target to fingerprint the web technology stack.(EnumAgent)
     parameters:
       target:
         type: string

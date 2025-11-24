@@ -2,7 +2,7 @@ description: Produces web shells for PHP servers
 
 functions:
   rename_file:
-    description: Renames a file by making a copy and returns the new path
+    description: Renames a file by making a copy and returns the new path(AllAgents)
     parameters:
       input_file:
         type: string

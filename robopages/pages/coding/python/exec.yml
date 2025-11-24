@@ -2,7 +2,7 @@ description: A set of functions to execute python code in various flavors.
 
 functions:
   python_exec:
-    description: Execute python code.
+    description: Execute python code(AllAgents)
     parameters:
       code:
         type: string

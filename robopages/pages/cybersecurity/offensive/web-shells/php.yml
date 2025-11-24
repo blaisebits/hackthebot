@@ -2,7 +2,7 @@ description: Produces web shells for PHP servers
 
 functions:
   get_php_webshell_dysco_artifact:
-    description: Return an PHP webshell initial access payload artifact
+    description: Return an PHP webshell initial access payload artifact(ExploitAgent)
     parameters:
       output_file:
         type: string
@@ -19,7 +19,7 @@ functions:
 
 
   call_php_webshell_dysco:
-    description: Send a command to Dysco PHP shell artifact
+    description: Send a command to Dysco PHP shell artifact(ExploitAgent,PostExAgent)
     parameters:
       target_url:
         type: string
@@ -55,7 +55,7 @@ functions:
         print(response)
 
   get_php_webshell_dysco_initial_access_exploit_code:
-    description: Generate Python Code for a Dysco Webshell Initial Access Exploit
+    description: Generate Python Code for a Dysco Webshell Initial Access Exploit(ExploitAgent)
     parameters:
       target_url:
         type: string
@@ -74,7 +74,7 @@ functions:
         print(response)
 
   get_php_webshell_dysco_initial_access_exploit_toolcall:
-    description: Generate Python Code for a Dysco Webshell Initial Access Exploit
+    description: Generate Python Code for a Dysco Webshell Initial Access Exploit(ExploitAgent)
     parameters:
       target_url:
         type: string

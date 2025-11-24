@@ -1,9 +1,11 @@
 from os import getenv
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Literal
 import requests
 
 from langchain_core.tools import BaseTool, ArgsSchema
 from pydantic import BaseModel, Field, create_model
+
+from utils.Tasking import annoying_debug
 
 
 def create_arg_schema(model_name: str, description: str, fields: Dict[str, Type]):
@@ -12,6 +14,7 @@ def create_arg_schema(model_name: str, description: str, fields: Dict[str, Type]
 class RoboPagesTool(BaseTool):
     name: str
     description: str
+    agents: [str]
     parameters: List[Dict]
     args_schema: Optional[ArgsSchema]
 
@@ -64,9 +67,18 @@ class RoboPages:
         for item in functions:
             # pprint(item, width=200); break
             for func in item["functions"]:
-                name = func["name"]
-                description = func["description"]
-                parameters =  func["parameters"]
+                # annoying_debug(func)
+                name:str = func["name"]
+                raw_description:str = func["description"]
+                parameters:list[dict] =  func["parameters"]
+
+                try:
+                    description:str = raw_description.split('(')[0]
+                    agent_map:[str] = raw_description.split('(')[1][0:-1].split(',')
+                except IndexError:
+                    annoying_debug(f"Function \"{name}\" missing agent mapping, defaulting to \"AllAgents\"")
+                    description:str = raw_description
+                    agent_map:[str] = ["AllAgents"]
 
                 #Building arg fields for pydantic
                 args = {}
@@ -76,6 +88,7 @@ class RoboPages:
                 tool = RoboPagesTool(
                     name= name,
                     description= description,
+                    agents= agent_map,
                     parameters= parameters,
                     args_schema= create_model( f"{name}_schema", **args),
                 )
@@ -98,7 +111,7 @@ class RoboPages:
                 return tool
         return None
 
-    def filter_tools(self, filter_string: str) -> List[RoboPagesTool] | None:
+    def filter_tools_by_name(self, filter_string: str) -> List[RoboPagesTool] | None:
         """Retrieve a set of tools with the filter_string in the name, fetching and creating tools if needed."""
         output: List[RoboPagesTool] = []
         if not self.tools:
@@ -106,6 +119,22 @@ class RoboPages:
         for tool in self.tools:
             if filter_string.lower() in tool.name:
                 output.append(tool)
+        if output:
+            return output
+        else:
+            return None
+
+    def filter_tools_by_agent(self, filter_string:list[Literal["ReconAgent", "EnumAgent", "ExploitAgent", "PostExAgent", "AllAgents"]]) -> List[RoboPagesTool] | None:
+        """Retrieve a set of tools with the filter_string in the agent, fetching and creating tools if needed.
+        Valid agent strings: [ReconAgent, EnumAgent, ExploitAgent, PostExAgent, AllAgents]"""
+        output: List[RoboPagesTool] = []
+        if not self.tools:
+            self.__create_tools()
+
+        for tool in self.tools:
+            for fs in filter_string:
+                if fs in tool.agents:
+                    output.append(tool)
         if output:
             return output
         else:
@@ -173,7 +202,7 @@ if __name__ == "__main__":
     print("--- Filter Tool Function")
     rb = RoboPages()
     robo_tool = []
-    robo_tool = rb.filter_tools(filter_string="http_get")
+    robo_tool = rb.filter_tools_by_name(filter_string="http_get")
     if robo_tool:
         print(f"\033[32mPassed!\033[0m")
     else:

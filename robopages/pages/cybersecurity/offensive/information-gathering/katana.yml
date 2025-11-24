@@ -2,7 +2,7 @@ description: Katana is a fast crawler focused on execution in automation pipelin
 
 functions:
   katana_headless_crawler:
-    description: "Crawls a target or list of targets in headless mode"
+    description: "Crawls a target or list of targets in headless mode(EnumAgent)"
     parameters:
       target:
         type: string
@@ -28,7 +28,7 @@ functions:
       - -jsonl
 
   katana_proxied_crawler_scope:
-    description: "Crawls a target or list of targets with a proxy and defined crawl scope using regex"
+    description: "Crawls a target or list of targets with a proxy and defined crawl scope using regex(EnumAgent)"
     parameters:
       target:
         type: string

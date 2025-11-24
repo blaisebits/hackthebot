@@ -5,7 +5,7 @@ description: >
 
 functions:
   nmap_tcp_ports_syn_scan:
-    description: Scan one or more targets for the list of common TCP ports using a TCP SYN scan.
+    description: Scan one or more targets for the list of common TCP ports using a TCP SYN scan.(ReconAgent,EnumAgent)
     parameters:
       target:
         type: string
@@ -35,7 +35,7 @@ functions:
       - ${target}
 
   nmap_udp_ports_scan:
-    description: Scan one or more targets for the list of common UDP ports.
+    description: Scan one or more targets for the list of common UDP ports.(ReconAgent,EnumAgent)
     parameters:
       target:
         type: string
@@ -63,7 +63,7 @@ functions:
       - '-'
       - ${target}
   nmap_host_discovery:
-    description: Used to discover unknown hosts that could be online and reachable.
+    description: Used to discover unknown hosts that could be online and reachable.(ReconAgent)
     parameters:
       target:
         type: string
@@ -96,7 +96,7 @@ functions:
       - '-'
       - ${target}
   nmap_tcp_ports_syn_scan_all_ports:
-    description: Scan one or more targets for the list of common TCP ports using a TCP SYN scan.
+    description: Scan one or more targets for the list of common TCP ports using a TCP SYN scan.(ReconAgent,EnumAgent)
     parameters:
       target:
         type: string
@@ -125,7 +125,7 @@ functions:
       - '-'
       - ${target}
   nmap_service_enumeration:
-    description: Scan one or more targets to enumerate the service running on a list of ports.
+    description: Scan one or more targets to enumerate the service running on a list of ports.(ReconAgent,EnumAgent)
     parameters:
       target:
         type: string
