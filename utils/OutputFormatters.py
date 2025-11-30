@@ -31,6 +31,9 @@ class ExploitStepStatus(BaseModel):
     insert_step: bool = Field(description="True if the revision should be executed prior to the current step.")
     rce: bool = Field(description="True of code execution has occurred with proof of command output")
 
+class ExploitStepRevisions(BaseModel):
+    steps: list[ExploitStep] = Field(description="Updated list of exploit steps")
+
 class ExploitRceCheck(BaseModel):
     rce: bool = Field(description="True of code execution has been completed")
 

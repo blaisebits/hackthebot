@@ -42,17 +42,18 @@ class Host(TypedDict):
 
 class ExploitStep(TypedDict):
     """Single Task entity for agents to process."""
-    step_task: str
+    step_task: Annotated[str, ..., "The action to complete for the ExploitStep"]
     status: Literal["new", "working", "validated", "failed", "skipped"]
-    tool: List[str] # The tool(s) used to complete the task
-    output: List[dict] # output_formatted tool call output
+    scratchpad: Annotated[str, ..., "Actions and outcomes taken to complete this ExploitStep"]
+    # tool: List[str] # The tool(s) used to complete the task
+    # output: List[dict] # output_formatted tool call output
 
 class ExploitTask(TypedDict):
     task: str
     status: Literal["new", "working", "validated", "failed"]
     verdict: Literal["exploitable","non-exploitable"]|None
     current_step: int
-    steps: List[ExploitStep]
+    steps: list[ExploitStep]
     target_ip: str  # The target host IP address
     initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
 

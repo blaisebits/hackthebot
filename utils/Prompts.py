@@ -307,7 +307,10 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                      "</OUTPUT>\n"
                      "<CONTEXT>\n"
                      "{context}\n"
-                     "</CONTEXT>\n")
+                     "</CONTEXT>\n"
+                     "<STEPS>\n"
+                     "{exploit_steps}\n"
+                     "</STEPS>")
 
     return ChatPromptTemplate(
         [

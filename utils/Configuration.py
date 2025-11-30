@@ -10,7 +10,8 @@ from os import getenv
 class Config(TypedDict):
     llm: BaseChatModel
 
-__CLAUDE_MODEL= "claude-3-7-sonnet-latest"
+# __CLAUDE_MODEL= "claude-3-7-sonnet-latest"
+__CLAUDE_MODEL= "claude-sonnet-4-5"
 __CLAUDE_MODEL_TEMP= 0.70
 __CLAUDE_LLM= ChatAnthropic(
         model= __CLAUDE_MODEL,

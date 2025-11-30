@@ -46,8 +46,9 @@ def create_exploit_step(step_task: str)-> ExploitStep:
     return ExploitStep(
         step_task= step_task,
         status= "new",
-        tool= [],
-        output= []
+        scratchpad= ""
+        # tool= [],
+        # output= []
     )
 
 def get_current_exploit_task(state: StingerState) -> int:
@@ -55,9 +56,25 @@ def get_current_exploit_task(state: StingerState) -> int:
     Checks the state table for the currently working exploit task
     Returns -1 if no working task is found
     """
-    for index, element in enumerate(state["tasks"][state["current_task"]]["output"]):
-        if element["status"] == "working":
+    for index, task in enumerate(state["tasks"][state["current_task"]]["output"]):
+        if task["status"] == "working":
             return index
+
+    return -1
+
+def get_current_exploit_task_step(state: StingerState) -> int:
+    """
+    Checks the state table for the currently working exploit step
+    Returns -1 if no working task is found
+    """
+    current_exploit_task = get_current_exploit_task(state)
+    # for task in state["tasks"][state["current_task"]]["output"]:
+    #     if task["status"] == "working":
+    # noinspection PyTypeChecker
+    for index, step in enumerate(state["tasks"][state["current_task"]]["output"][current_exploit_task]["steps"]):
+        if step["status"] == "working" or step["status"] == "new":
+            return index
+
 
     return -1
 
@@ -75,6 +92,4 @@ def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> str:
             data += f"* {tool} => {outputs[index]}\n"
 
     return data
-
-    # return list(zip(tools, outputs))
 
