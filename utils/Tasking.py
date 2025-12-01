@@ -44,6 +44,7 @@ def create_exploit_step(step_task: str)-> ExploitStep:
     Takes in step task string and returns ExploitStep
     """
     return ExploitStep(
+        iterations = 0,
         step_task= step_task,
         status= "new",
         scratchpad= ""

@@ -43,9 +43,9 @@ async def browser_wrapper(state: StingerState):
 
         ## create a context for the task
         exploit_task_index: int = get_current_exploit_task(state)
-        browser_task = f"<TASK>\n{step_task}\n</TASK>\n<CONTEXT>\n{build_exploit_task_context(state, exploit_task_index)}</CONTEXT>"
+        browser_task = f"<TASK>\n{step_task}\n</TASK>\n<CONTEXT>\n{build_exploit_task_context(state)}</CONTEXT>"
         result = await agent.execute_task(browser_task)
-        state["tasks"][current_task]["output"][current_exploit_task]["steps"][step_index]["output"] += [result["messages"][-1].text()]
+        state["tasks"][current_task]["output"][current_exploit_task]["steps"][step_index]["scratchpad"] += result["messages"][-1].text()
 
     #extract tasks for all other agents
     else:
