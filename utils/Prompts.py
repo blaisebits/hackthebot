@@ -276,6 +276,8 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "  * Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.\n"
                         "# Instructions\n"
                         "* You must always return the `ExploitTask` data\n"
+                        "  * The `ExploitTask` should be a full and complete copy of the data with updates\n"
+                        "  * Never return a JSON patch"
                         "* When determining the <STEP> `status` value, only consider information from the `scratchpad`.\n"
                         "* Check the <STEP> `scratchpad` to determine if remote code execution(RCE) has been achieved.\n"
                         "  * If RCE is observed do the following:\n"
@@ -308,7 +310,8 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "      * Perform a request to get a new CSRF token\n"
                         "* For determining `Create initial access exploit to the target` task's validity the `scratchpad` should be complete and functional code or a structured tool call with the `name` and `args`\n"
                         "  * Think step by step when performing analysis\n"
-                        "  * Initial Access Exploits may contain placeholders values like <command> which is to be considered valid.\n")
+                        "  * Initial Access Exploits may contain placeholders values like <command> which is to be considered valid.\n"
+                        "You must explain your thinking and reasoning for the returned `ExploitTask` data.\n")
     user_template = ("<STEP>\n"
                      "{step}\n"
                      "<EXPLOITTASK>\n"

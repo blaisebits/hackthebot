@@ -1,6 +1,6 @@
 from typing import Annotated, List, Literal, Optional, Any
 from typing_extensions import TypedDict
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage, ToolMessage
 from langgraph.graph import add_messages
 
 class Port(TypedDict):
@@ -50,10 +50,10 @@ class ExploitStep(TypedDict):
     # output: List[dict] # output_formatted tool call output
 
 class ExploitTask(TypedDict):
-    task: Annotated[str, ..., "The exploit step"]
+    task: Annotated[str, ..., "The exploit method being attempted"]
     status: Annotated[Literal["new", "working", "validated", "failed","exploitable","non-exploitable"], ...,"The current status of the exploit task"]
-    current_step: Annotated[int,...,"List array index value to show show the current step"]
-    steps: Annotated[list[ExploitStep], ...,"List of steps to complete the exploit task"]
+    current_step: Annotated[int,...,"List array index value to for the current step"]
+    steps: Annotated[list[ExploitStep], ...,"List array of steps to complete the exploit task"]
     target_ip: Annotated[str, ...,"The target host's IP address"]
     initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
 
@@ -82,6 +82,7 @@ class StingerState(TypedDict):
     next: str #Used for routing to primary agents
     working_memory: str #Only used for internal primary agent information
     longterm_memory: str #only here just in case it's needed
+    last_tool_called: ToolMessage
 
 
 class StingerRouter(TypedDict):
