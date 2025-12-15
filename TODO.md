@@ -38,12 +38,16 @@
 * [x] investigate host table being purged, probably done during PFC
   *  https://smith.langchain.com/public/1bca3a82-c6d7-412c-8da2-eb584cc6e3ad/r
 
+## Exploit
+* investigate langchain deepagent and TodoMiddleware
+
 ## Overall
 * [ ] Check tasking data for potential answers before tool calls.
 * [ ] Move `OutputFormatters` to a yaml file for dynamic generation.
 
 # Potential Future components
 * Really sick React UI thingy: [ReactFlow](https://reactflow.dev/)
+* Actually learn async: [Async Concepts](https://docs.python.org/3/howto/a-conceptual-overview-of-asyncio.html)
 
 # Potential future issues
 * Handling for multi-system CTFs

@@ -46,13 +46,11 @@ class ExploitStep(TypedDict):
     scratchpad: Annotated[str, ..., "Actions and outcomes taken to complete this ExploitStep"]
     status: Annotated[Literal["new", "working", "validated", "failed", "skipped"],...,"The current status of the exploit step"]
     step_task: Annotated[str, ..., "The action to complete for the ExploitStep"]
-    # tool: List[str] # The tool(s) used to complete the task
-    # output: List[dict] # output_formatted tool call output
 
 class ExploitTask(TypedDict):
     task: Annotated[str, ..., "The exploit method being attempted"]
     status: Annotated[Literal["new", "working", "validated", "failed","exploitable","non-exploitable"], ...,"The current status of the exploit task"]
-    current_step: Annotated[int,...,"List array index value to for the current step"]
+    # current_step: Annotated[int,...,"List array index value to for the current step"]
     steps: Annotated[list[ExploitStep], ...,"List array of steps to complete the exploit task"]
     target_ip: Annotated[str, ...,"The target host's IP address"]
     initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]

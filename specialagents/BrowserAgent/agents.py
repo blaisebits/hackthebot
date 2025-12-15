@@ -37,7 +37,8 @@ async def browser_wrapper(state: StingerState):
         ## DO EXPLOIT (agent) STUFF
         current_exploit_task:int = get_current_exploit_task(state)
         task_output:ExploitTask = task["output"][current_exploit_task]
-        step_index:int = task_output["current_step"]
+        step_index:int = get_current_exploit_task(state)
+
         # step:ExploitStep = task_output["steps"][step_index]
         step_task = task_output["steps"][step_index]["step_task"]
 
