@@ -1,3 +1,6 @@
+import string
+from random import choice
+
 from langchain_core.messages import ToolMessage
 
 from utils.OutputFormatters import TaskBasicInfo
@@ -44,6 +47,7 @@ def create_exploit_step(step_task: str)-> ExploitStep:
     Takes in step task string and returns ExploitStep
     """
     return ExploitStep(
+        __ID__ = ''.join(choice(string.ascii_uppercase + string.digits) for _ in range(5)),
         iterations = 0,
         step_task= step_task,
         status= "new",
@@ -63,7 +67,7 @@ def get_current_exploit_task(state: StingerState) -> int:
 
     return -1
 
-def get_current_exploit_task_step(state: StingerState) -> int:
+def get_current_exploit_step(state: StingerState) -> int:
     """
     Checks the state table for the currently working exploit step
     Returns -1 if no working task is found
@@ -94,3 +98,13 @@ def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> str:
 
     return data
 
+def repair_scratchpad(new_steps:[ExploitStep], old_steps:[ExploitStep]) -> [ExploitStep]:
+    """
+    Populates the new exploit step list scratchpad values from the old list
+    Matches elements by `__ID__` value
+    """
+    for i, step in enumerate(new_steps):
+        for oldstep in old_steps:
+            if step["__ID__"] == oldstep["__ID__"]:
+                new_steps[i]["scratchpad"] = oldstep["scratchpad"]
+    return new_steps

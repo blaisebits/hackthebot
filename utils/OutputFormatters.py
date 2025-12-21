@@ -1,6 +1,7 @@
 from typing import Dict, List, Literal
 from pydantic import BaseModel, Field
-from utils.States import Port
+from utils.States import Port, ExploitStep
+
 
 class SpecialAgentCaller(BaseModel):
     name:str = Field(description="Name of the special agent to pass execution")
@@ -19,7 +20,7 @@ class TaskBasicInfo(BaseModel):
 class TaskBasicInfoList(BaseModel):
     tasks: List[TaskBasicInfo] = Field(description="A list of the tasks with basic information.")
 
-class ExploitStep(BaseModel):
+class ExploitStep_Formatter(BaseModel):
     steps: List[str] = Field(description="The steps to execute, in order, to exploit a target for remote code execution.")
 
 class ExploitSuggestions(BaseModel):
@@ -29,9 +30,9 @@ class ExploitStepUpdates(BaseModel):
     updates: list[ExploitStep] = Field(description="The list of steps to complete the exploit")
 
 
-############################################################
-##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES ####
-############################################################
+#############################################################
+##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES #####
+#############################################################
 
 class NmapOutputFormat(BaseModel):
     """Nmap structured output format"""

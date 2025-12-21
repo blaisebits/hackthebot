@@ -1,5 +1,4 @@
 import asyncio
-import os
 import string
 from datetime import datetime, timedelta
 from random import choice, randint

@@ -271,11 +271,10 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
 
 
     system_template = ("# Role\n"
-                        "* You are a world class exploit analyzer. Use the following criteria to determine the values for updating the information in <EXPLOITTASK> and return as `ExploitTask` data structure.\n"
+                        "* You are a world class cybersecurity exploit analyzer. Use the following criteria to determine the values for updating the information in <EXPLOITTASK> and return as `ExploitStepUpdates` data structure.\n"
                         "# Definitions:\n"
                         "  * Code execution — the ability for arbitrary supplied code or commands to run inside a target environment (client or server), producing observable effects such as outbound network callbacks, file/process changes, or DOM/script actions.\n"
                         "# Instructions\n"
-                        # "* You must always return the `ExploitStepRevisions` data\n"
                         "* When determining the <STEP> `status` value, only consider information from the `scratchpad`.\n"
                         "* Check the <STEP> `scratchpad` to determine if remote code execution(RCE) has been achieved.\n"
                         "  * If RCE is observed do the following:\n"
@@ -287,7 +286,7 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "* <STEP> `step_task` may contain place holder text like [filename].php, these should not be considered hard requirements for completion\n"
                         "* If the <STEP> completed successfully do the following:\n"
                         "  * Update the <STEP> `status` field to `validated`\n"
-                        "  * Set the next step entry in the <EXPLOITTASK> `steps` array to a `status` of `working`\n"
+                        "  * Set the next step entry in the `steps` array to a `status` of `working`\n"
                         "* If the <STEP> did not completed successfully use the following criteria to update the steps.\n"
                         "  * Always increment the <STEP> `iterations` field by 1\n"
                         "  * Analyze the <STEP> `scratchpad` for historical attempts to avoid trying previously failed revisions.\n"
@@ -305,10 +304,11 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "      * If a file needs to be renamed before uploading\n"
                         "      * If a file needs to be recompiled before executing\n"
                         "      * Perform a request to get a new CSRF token\n"
+                        "* Every `scratchpad` field should be returned as blank for the server to fill-in\n"
                         "* For determining `Create initial access exploit to the target` task's validity the `scratchpad` should be complete and functional code or a structured tool call with the `name` and `args`\n"
                         "  * Think step by step when performing analysis\n"
                         "  * Initial Access Exploits may contain placeholders values like <command> which is to be considered valid.\n"
-                        "You must explain your thinking and reasoning for the returned `ExploitTask` data.\n")
+                        "You must explain your thinking and reasoning for the returned `ExploitStepUpdates` data.\n")
     user_template = ("<STEP>\n"
                      "{step}\n"
                      "<EXPLOITTASK>\n"

@@ -42,6 +42,7 @@ class Host(TypedDict):
 
 class ExploitStep(TypedDict):
     """Single Task entity for agents to process."""
+    __ID__: Annotated[str,...,"The step's immutable tracking ID, it will never change"]
     iterations: Annotated[int,..., "The number of attempts for completing this step"]
     scratchpad: Annotated[str, ..., "Actions and outcomes taken to complete this ExploitStep"]
     status: Annotated[Literal["new", "working", "validated", "failed", "skipped"],...,"The current status of the exploit step"]

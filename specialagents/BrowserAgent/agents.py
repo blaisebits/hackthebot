@@ -4,7 +4,7 @@ from langgraph.graph import StateGraph
 from specialagents.BrowserAgent.Browser import PersistentBrowserAgent
 from utils.ContextHelpers import build_exploit_task_context
 from utils.States import StingerState, ExploitTask, Task, ExploitStep
-from utils.Tasking import get_current_exploit_task
+from utils.Tasking import get_current_exploit_task, get_current_exploit_step
 
 _AGENT_NAME="BrowserAgent"
 _AGENT_MAPPING=["Recon","Enum","Exploit"]
@@ -37,7 +37,7 @@ async def browser_wrapper(state: StingerState):
         ## DO EXPLOIT (agent) STUFF
         current_exploit_task:int = get_current_exploit_task(state)
         task_output:ExploitTask = task["output"][current_exploit_task]
-        step_index:int = get_current_exploit_task(state)
+        step_index:int = get_current_exploit_step(state)
 
         # step:ExploitStep = task_output["steps"][step_index]
         step_task = task_output["steps"][step_index]["step_task"]

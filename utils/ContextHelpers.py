@@ -1,7 +1,7 @@
 from typing import List
 
 from utils.States import StingerState, ExploitTask, ExploitStep
-from utils.Tasking import get_current_exploit_task_step, get_current_exploit_task
+from utils.Tasking import get_current_exploit_step, get_current_exploit_task
 
 
 def build_exploit_task_context(state:StingerState) -> str:
@@ -12,7 +12,7 @@ def build_exploit_task_context(state:StingerState) -> str:
     exploit_task_index:int = get_current_exploit_task(state)
     exploit_task: ExploitTask = state["tasks"][state["current_task"]]["output"][exploit_task_index]
     exploit_steps: List[ExploitStep] = exploit_task["steps"]
-    current_step_index: int = get_current_exploit_task_step(state)
+    current_step_index: int = get_current_exploit_step(state)
 
     context = "Previous Exploit steps:\n"
     for i in range(current_step_index+1):
