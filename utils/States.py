@@ -37,7 +37,7 @@ class Host(TypedDict):
     ip_address: Annotated[str, ..., "IP address of the host"]
     hostname: Annotated[List[str], ..., "DNS hostname associated to the host."]
     ports: Annotated[dict[str, Port], ..., "Mapping of ports to their attributes."]
-    initial_access_exploit: Annotated[dict[int, InitialAccessExploit], ..., "Maps port integer to an initial access exploit."]
+    initial_access_exploit: Annotated[list[InitialAccessExploit], ..., "Maps port integer to an initial access exploit."]
     verdicts: Annotated[List[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
 
 class ExploitStep(TypedDict):
@@ -54,7 +54,7 @@ class ExploitTask(TypedDict):
     # current_step: Annotated[int,...,"List array index value to for the current step"]
     steps: Annotated[list[ExploitStep], ...,"List array of steps to complete the exploit task"]
     target_ip: Annotated[str, ...,"The target host's IP address"]
-    initial_access_exploit: Annotated[str, ..., "Payload for single command execution on the target."]
+    initial_access_exploit: Annotated[InitialAccessExploit, ..., "Payload for single command execution on the target."]
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""

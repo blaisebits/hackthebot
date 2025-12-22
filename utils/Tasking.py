@@ -56,18 +56,19 @@ def create_exploit_step(step_task: str)-> ExploitStep:
         # output= []
     )
 
-def get_current_exploit_task(state: StingerState) -> int:
+def get_current_exploit_task(state: StingerState) -> int|None:
     """
     Checks the state table for the currently working exploit task
     Returns -1 if no working task is found
     """
-    for index, task in enumerate(state["tasks"][state["current_task"]]["output"]):
+    x = enumerate(state["tasks"][state["current_task"]]["output"])
+    for index, task in x:
         if task["status"] == "working":
             return index
 
-    return -1
+    return None
 
-def get_current_exploit_step(state: StingerState) -> int:
+def get_current_exploit_step(state: StingerState) -> int|None:
     """
     Checks the state table for the currently working exploit step
     Returns -1 if no working task is found
@@ -81,7 +82,7 @@ def get_current_exploit_step(state: StingerState) -> int:
             return index
 
 
-    return -1
+    return None
 
 ##Output format helpers
 def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> str:

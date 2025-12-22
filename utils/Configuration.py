@@ -15,7 +15,8 @@ __CLAUDE_MODEL= "claude-sonnet-4-5"
 __CLAUDE_MODEL_TEMP= 0.70
 __CLAUDE_LLM= ChatAnthropic(
         model= __CLAUDE_MODEL,
-        temperature= __CLAUDE_MODEL_TEMP
+        temperature= __CLAUDE_MODEL_TEMP,
+        streaming= False
     )
 
 # __OLLAMA_MODEL= "gpt-oss:20B"

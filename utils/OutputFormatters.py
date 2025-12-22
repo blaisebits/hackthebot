@@ -1,6 +1,6 @@
 from typing import Dict, List, Literal
 from pydantic import BaseModel, Field
-from utils.States import Port, ExploitStep
+from utils.States import Port, ExploitStep, InitialAccessExploit
 
 
 class SpecialAgentCaller(BaseModel):
@@ -29,6 +29,12 @@ class ExploitSuggestions(BaseModel):
 class ExploitStepUpdates(BaseModel):
     updates: list[ExploitStep] = Field(description="The list of steps to complete the exploit")
 
+class ExploitTaskUpdates(BaseModel):
+    initial_access_exploit:InitialAccessExploit = Field(description="Payload for single command execution on the target.")
+    status:str = Field(description="The current status of the exploit task")
+
+class ExploitBailOut(BaseModel):
+    reason:str = Field(description="Reason for abandoning the Exploit Task")
 
 #############################################################
 ##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES #####
