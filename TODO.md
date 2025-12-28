@@ -42,8 +42,12 @@
 * investigate langchain deepagent and TodoMiddleware
 
 ## Overall
+* [ ] Change handling of state table: State is passed by reference, will need place holders for returnable values and not edit the state object directly.
+  * [ ] Recon / Enum Agents
+  * [ ] Exploit / Agent
 * [ ] Check tasking data for potential answers before tool calls.
 * [ ] Move `OutputFormatters` to a yaml file for dynamic generation.
+* [ ] Create pydantic BaseModel schemas for use with tool calls to avoid TypedDict missing
 
 # Potential Future components
 * Really sick React UI thingy: [ReactFlow](https://reactflow.dev/)

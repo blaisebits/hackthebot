@@ -42,7 +42,7 @@ class Host(TypedDict):
 
 class ExploitStep(TypedDict):
     """Single Task entity for agents to process."""
-    __ID__: Annotated[str,...,"The step's immutable tracking ID, it will never change"]
+    id: Annotated[str,..., "The step's immutable tracking ID, it will never change"]
     iterations: Annotated[int,..., "The number of attempts for completing this step"]
     scratchpad: Annotated[str, ..., "Actions and outcomes taken to complete this ExploitStep"]
     status: Annotated[Literal["new", "working", "validated", "failed", "skipped"],...,"The current status of the exploit step"]
@@ -54,7 +54,7 @@ class ExploitTask(TypedDict):
     # current_step: Annotated[int,...,"List array index value to for the current step"]
     steps: Annotated[list[ExploitStep], ...,"List array of steps to complete the exploit task"]
     target_ip: Annotated[str, ...,"The target host's IP address"]
-    initial_access_exploit: Annotated[InitialAccessExploit, ..., "Payload for single command execution on the target."]
+    initial_access_exploit: Annotated[InitialAccessExploit|None, ..., "Payload for single command execution on the target."]
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""

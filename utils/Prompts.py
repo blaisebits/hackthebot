@@ -315,7 +315,7 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "  * Initial Access Exploits may contain placeholders values like <command> which is to be considered valid\n"
                         "* If the `Verify the initial access exploit by sending the \`pwd\` command` task is validated, do not return `ExploitStepUpdates` and instead return `ExploitTaskUpdates`\n"
                         "    * Set the `initial_access_exploit` field to the validated Initial Access Exploit\n"
-                        "    * Set the `status` field to `validated`.\n"
+                        "    * Set the `status` field to `exploitable`.\n"
                         "* If the Exploit Task's approach appears to hit a dead end, do not return `ExploitStepUpdates` and instead return `ExploitTaskUpdates`\n"
                         "    * Set the `initial_access_exploit` to `null`\n"
                         "    * Set the `status` field to `failed`\n"

@@ -35,11 +35,9 @@ def expand_exploit_suggestion(target_ip:str, task: str) -> ExploitTask:
     return ExploitTask(
         task= task,
         status= "new",
-        verdict= None,
-        current_step = 0,
         steps= [],
         target_ip= target_ip,
-        initial_access_exploit=""
+        initial_access_exploit=None
     )
 
 def create_exploit_step(step_task: str)-> ExploitStep:
@@ -47,7 +45,7 @@ def create_exploit_step(step_task: str)-> ExploitStep:
     Takes in step task string and returns ExploitStep
     """
     return ExploitStep(
-        __ID__ = ''.join(choice(string.ascii_uppercase + string.digits) for _ in range(5)),
+        id = ''.join(choice(string.ascii_uppercase + string.digits) for _ in range(5)),
         iterations = 0,
         step_task= step_task,
         status= "new",
@@ -59,7 +57,7 @@ def create_exploit_step(step_task: str)-> ExploitStep:
 def get_current_exploit_task(state: StingerState) -> int|None:
     """
     Checks the state table for the currently working exploit task
-    Returns -1 if no working task is found
+    Returns None if no working task is found
     """
     x = enumerate(state["tasks"][state["current_task"]]["output"])
     for index, task in x:
@@ -102,10 +100,10 @@ def format_tool_output(tools:list[str], outputs:list[ToolMessage|str]) -> str:
 def repair_scratchpad(new_steps:[ExploitStep], old_steps:[ExploitStep]) -> [ExploitStep]:
     """
     Populates the new exploit step list scratchpad values from the old list
-    Matches elements by `__ID__` value
+    Matches elements by `id` value
     """
     for i, step in enumerate(new_steps):
         for oldstep in old_steps:
-            if step["__ID__"] == oldstep["__ID__"]:
+            if step["id"] == oldstep["id"]:
                 new_steps[i]["scratchpad"] = oldstep["scratchpad"]
     return new_steps

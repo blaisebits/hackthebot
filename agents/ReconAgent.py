@@ -158,7 +158,6 @@ def validator(state: StingerState):
     )
 
     llm_with_structured_output = llm.with_structured_output(TaskAnswer)
-    # response = llm_with_structured_output.invoke(validator_prompt)
     response = llm_invoke_retry(llm_with_structured_output,validator_prompt)
 
     if response.answer == "":    # Check if task needs further processing from blank answer
@@ -166,6 +165,7 @@ def validator(state: StingerState):
             "messages": [AIMessage("ReconValidator: Task unanswered, passing to ReconAgent.")]
         }
     else:
+        # noinspection PyTypedDict
         state["tasks"][ state["current_task"] ]["status"] = "validated"
         state["tasks"][ state["current_task"] ]["verdict"] = response
 

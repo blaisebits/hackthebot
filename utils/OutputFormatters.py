@@ -1,3 +1,4 @@
+from pydoc import describe
 from typing import Dict, List, Literal
 from pydantic import BaseModel, Field
 from utils.States import Port, ExploitStep, InitialAccessExploit
@@ -20,21 +21,25 @@ class TaskBasicInfo(BaseModel):
 class TaskBasicInfoList(BaseModel):
     tasks: List[TaskBasicInfo] = Field(description="A list of the tasks with basic information.")
 
-class ExploitStep_Formatter(BaseModel):
+class ExploitStepFormatter(BaseModel):
     steps: List[str] = Field(description="The steps to execute, in order, to exploit a target for remote code execution.")
 
 class ExploitSuggestions(BaseModel):
     tasks: List[str] = Field(description="Exploitation methods that could potentially be used to exploit the target for remote code execution.")
 
+class ExploitStepSchema(BaseModel):
+    id:str = Field(description="The step's immutable tracking ID, it will never change")
+    iterations:int = Field(description="The number of attempts for completing this step")
+    scratchpad:str = Field(description="Actions and outcomes taken to complete this ExploitStep")
+    status:Literal["new", "working", "validated", "failed", "skipped"] = Field(description="The current status of the exploit step")
+    step_task:str = Field(description="The action to complete for the ExploitStep")
+
 class ExploitStepUpdates(BaseModel):
-    updates: list[ExploitStep] = Field(description="The list of steps to complete the exploit")
+    updates: list[ExploitStepSchema] = Field(description="The list of steps to complete the exploit")
 
 class ExploitTaskUpdates(BaseModel):
     initial_access_exploit:InitialAccessExploit = Field(description="Payload for single command execution on the target.")
     status:str = Field(description="The current status of the exploit task")
-
-class ExploitBailOut(BaseModel):
-    reason:str = Field(description="Reason for abandoning the Exploit Task")
 
 #############################################################
 ##### TOOL SPECIFIC OUTPUT FORMATTERS FOR SPECIAL CASES #####
