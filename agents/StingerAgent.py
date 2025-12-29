@@ -80,11 +80,12 @@ def initializer(state: StingerState):
 
 
 def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploit","StingerHandOff"]]:
-    p_tools = {"stinger":"PLACEHOLDER"}
-    goto = ""
-    agent_message = ""
+    p_tools:dict = {"stinger":"PLACEHOLDER"}
+    goto:str = ""
+    agent_message:[AIMessage] = ""
     for index, task in enumerate(state["tasks"]):
         if task["status"] == "new":
+            # noinspection PyTypeChecker
             goto = task["agent"]
             state["current_task"] = index
             agent_message = [AIMessage(f"StingerAgent: Passing to {goto}")]

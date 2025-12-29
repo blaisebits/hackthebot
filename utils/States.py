@@ -3,6 +3,11 @@ from typing_extensions import TypedDict
 from langchain_core.messages import AnyMessage, ToolMessage
 from langgraph.graph import add_messages
 
+
+####################################
+# State Objects
+####################################
+
 class Port(TypedDict):
     """Single port on a network entity"""
     port: int
@@ -37,7 +42,7 @@ class Host(TypedDict):
     ip_address: Annotated[str, ..., "IP address of the host"]
     hostname: Annotated[List[str], ..., "DNS hostname associated to the host."]
     ports: Annotated[dict[str, Port], ..., "Mapping of ports to their attributes."]
-    initial_access_exploit: Annotated[list[InitialAccessExploit], ..., "Maps port integer to an initial access exploit."]
+    initial_access_exploit: Annotated[list[InitialAccessExploit]|None, ..., "Maps port integer to an initial access exploit."]
     verdicts: Annotated[List[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
 
 class ExploitStep(TypedDict):
@@ -58,6 +63,7 @@ class ExploitTask(TypedDict):
 
 class Task(TypedDict):
     """Single Task entity for agents to process."""
+    id: Annotated[str, ..., "The task's immutable tracking ID, it will never change"]
     task: str
     preflightcheck: bool
     status: Literal["new", "working", "validated"]
@@ -67,16 +73,55 @@ class Task(TypedDict):
     target_ip: str # The target host IP address
     verdict: Optional[TaskAnswer]|None # Answer for Task
 
-class TaskList(TypedDict):
-    """Used for structured output"""
-    tasks: List[Task]
+
+####################################
+# REDUCER FUNCTION
+####################################
+def host_dict_merge( current:list[Task], new:Task|list[Task] ):
+    return {**current, **new}
+
+def task_list_merge( current:list[Task], new:Task|list[Task] ):
+    """
+    Reducer function for updating Tasks in the StingerState
+    Matches Task object based on the `Task.task` field
+    """
+    output:list[Task] = []
+
+    #handle list of tasks to update
+    if isinstance(new, list):
+        for current_task in current:
+            current_task_id:str = current_task.get("id")
+            for new_task in new:
+                match:bool = current_task_id == new_task.get("id")
+                if match:
+                    new.remove(new_task)
+                    output.append(new_task)
+                    break
+                else:
+                    output.append(current_task)
+        output += new
+    else:
+        #updating a single task
+        new_task_id:str = new.get("task")
+        for current_task in current:
+            match:bool = current_task.get("id") == new_task_id
+            if match:
+                output.append(new)
+            else:
+                output.append(current_task)
+
+    return output
+
+####################################
+########### PRIMARY STATE ##########
+####################################
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: dict[str, Host] # e.g. 192.168.3.4
-    tasks: List[Task]
+    hosts: Annotated[dict[str, Host], host_dict_merge] # e.g. 192.168.3.4
+    tasks: Annotated[list[Task], task_list_merge]
     current_task: int  # points to the list index for tasks field
-    context: List[str|Host]
+    context: list[str|Host]
     persistent_tools: dict[str, Any] #{agent_name:tool}
     next: str #Used for routing to primary agents
     working_memory: str #Only used for internal primary agent information

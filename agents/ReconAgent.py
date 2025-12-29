@@ -1,3 +1,4 @@
+import copy
 from http.client import responses
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -12,8 +13,8 @@ from utils.LLMHelpers import llm_invoke_retry
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
 from utils.SpecialAgents import SpecialAgents
-from utils.States import StingerState
-from utils.Tasking import get_new_task
+from utils.States import StingerState, Task, Host
+from utils.Tasking import get_new_task, annoying_debug
 from utils.Tooling import RoboPagesTools
 
 rb = RoboPagesTools
@@ -29,50 +30,59 @@ def recon_agent(state: StingerState):
     task_str = None
     agent_messages = []
     context = []
+    output_current_task:int|None = None
+    output_task:Task|None = None
+    output_hosts:dict[str, Host]|None = None
 
     # Tasking workflow:
     #  Checking if working -> proceed to tool calling again
     #  Check if validated -> check for next task
     #  Check if new -> do preflightcheck and tool calls.
     if not state["tasks"][state["current_task"]]["agent"] == "Recon": # Not assigned to Recon
-        state["current_task"] = get_new_task("Recon", state["tasks"])
+        output_current_task = get_new_task("Recon", state["tasks"])
+    else:
+        output_current_task = state["current_task"]
 
-    if state["tasks"][state["current_task"]]["agent"] == "Recon": # Task assigned to Recon
-        if state["tasks"][state["current_task"]]["status"] == "working": # Task is working
-            task_str = state["tasks"][state["current_task"]]["task"]
-            target_ip = state["tasks"][state["current_task"]]["target_ip"]
+    if state["tasks"][output_current_task]["agent"] == "Recon": # Task assigned to Recon
+        if state["tasks"][output_current_task]["status"] == "working": # Task is working
+            task_str = state["tasks"][output_current_task]["task"]
+            target_ip = state["tasks"][output_current_task]["target_ip"]
             context.append(state["hosts"][target_ip])
-            agent_messages.append(AIMessage(f"ReconAgent: Reworking task {state["current_task"]}: \"{task_str}\"."))
+            agent_messages.append(AIMessage(f"ReconAgent: Reworking task {output_current_task}: \"{task_str}\"."))
 
-        elif (state["tasks"][state["current_task"]]["status"] == "validated"
-              or state["tasks"][state["current_task"]]["status"] == "new"): # task is validated/new
+        elif (state["tasks"][output_current_task]["status"] == "validated"
+              or state["tasks"][output_current_task]["status"] == "new"): # task is validated/new
 
-            if state["tasks"][state["current_task"]]["status"] == "validated":
-                state["current_task"] = get_new_task("Recon", state["tasks"])
-                if state["current_task"] == -1: #No more tasks for this agent
+            if state["tasks"][output_current_task]["status"] == "validated":
+                output_current_task = get_new_task("Recon", state["tasks"])
+                if output_current_task is None: #No more tasks for this agent
                     return {"messages": [AIMessage("ReconAgent: No Tasks were marked for execution. Passing to Stinger.")]}
 
-            task_str = state["tasks"][state["current_task"]]["task"]
-            target_ip = state["tasks"][state["current_task"]]["target_ip"]
-            state["tasks"][state["current_task"]]["status"] = "working"
-            agent_messages.append(AIMessage(f"ReconAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
+            task_str = state["tasks"][output_current_task]["task"]
+            target_ip = state["tasks"][output_current_task]["target_ip"]
+            output_task = copy.copy(state["tasks"][output_current_task])
+            annoying_debug(output_task)
+            output_task["status"] = "working"
+            annoying_debug(state["tasks"][output_current_task])
+            agent_messages.append(AIMessage(f"ReconAgent: Starting new task {output_current_task}: \"{task_str}\"."))
 
-            if not state["tasks"][state["current_task"]]["preflightcheck"]: # No PFC yet
-                if state["tasks"][state["current_task"]]["target_ip"] in state["hosts"].keys():  # Target IP has entry in host table
+            if not state["tasks"][output_current_task]["preflightcheck"]: # No PFC yet
+                if state["tasks"][output_current_task]["target_ip"] in state["hosts"].keys():  # Target IP has entry in host table
                     agent_messages.append(AIMessage(
-                        f"ReconAgent: Sending task {state["current_task"]}: \"{task_str}\" to validator for pre-flight check."))
+                        f"ReconAgent: Sending task {output_current_task}: \"{task_str}\" to validator for pre-flight check."))
                     return {
                         "messages": agent_messages,
-                        "current_task": state["current_task"]
+                        "current_task": output_current_task
                     }
                 else:
                     # Add blank entry to host table
-                    target_host = get_stub_host(state["tasks"][state["current_task"]]["target_ip"])
+                    target_host = get_stub_host(state["tasks"][output_current_task]["target_ip"])
 
-                    state["hosts"][target_host["ip_address"]] = target_host
-                    state["tasks"][state["current_task"]]["preflightcheck"] = True
+                    output_hosts = copy.copy(state["hosts"])
+                    output_hosts[target_host["ip_address"]] = target_host
+                    output_task["preflightcheck"] = True
                     task_str = state["tasks"][state["current_task"]]["task"]
-            context.append(state["hosts"][target_ip])
+            context.append(output_hosts[target_ip])
 
         else: #No tasks available, routing back to Stinger
             return {"messages": [AIMessage("ReconAgent: No Tasks were marked for execution. Passing to Stinger.")]}
@@ -90,13 +100,13 @@ def recon_agent(state: StingerState):
 
         # response = llm_with_tools.invoke(recon_prompt)
         response = llm_invoke_retry(llm_with_tools, recon_prompt)
-        state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
+        output_task["tool"].append(response.tool_calls[0]["name"])
         agent_messages.append(response)
         return {
             "messages": agent_messages,
-            "tasks": state["tasks"],
-            "current_task": state["current_task"],
-            "hosts": state["hosts"]
+            "tasks": output_task,
+            "current_task": output_current_task,
+            "hosts": output_hosts
         }
     else:
         # return no tasks response

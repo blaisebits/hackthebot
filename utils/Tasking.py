@@ -11,15 +11,15 @@ def annoying_debug(x):
     print(x)
     print("="*70)
 
-def get_new_task(agent: str, tasks: [Task]) -> int:
-    """Get the index to the first new task assigned to the agent. Returns -1 on no task found."""
+def get_new_task(agent: str, tasks: [Task]) -> int|None:
+    """Get the index to the first new task assigned to the agent. Returns None on no task found."""
     for index, task in enumerate(tasks):
         if task["agent"] == agent and task["status"] == "new": return index
-
-    return -1
+    return None
 
 def expand_task_basic_info(x: TaskBasicInfo) -> Task:
     return Task(
+        id = ''.join(choice(string.ascii_uppercase + string.digits) for _ in range(5)),
         task= x.task,
         preflightcheck= False,
         status="new",
