@@ -1,7 +1,7 @@
 import copy
 from http.client import responses
 
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langgraph.graph import StateGraph, START, add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
@@ -26,6 +26,14 @@ llm = Configuration["llm"]
 recon_tool_node = ToolNode(rb_tools)
 
 def recon_agent(state: StingerState):
+    """
+    Primary Tasking Node
+    **OUTPUT MAPPING**
+        "messages"    : agent_messages,
+        "tasks"       : output_task,
+        "current_task": output_current_task,
+        "hosts"       : output_hosts
+    """
     llm_with_tools = llm.bind_tools(rb_tools)
     task_str = None
     agent_messages = []
@@ -78,6 +86,7 @@ def recon_agent(state: StingerState):
                     # Add blank entry to host table
                     target_host = get_stub_host(state["tasks"][output_current_task]["target_ip"])
 
+                    # TODO: Update to return just the changed host
                     output_hosts = copy.copy(state["hosts"])
                     output_hosts[target_host["ip_address"]] = target_host
                     output_task["preflightcheck"] = True
@@ -124,8 +133,19 @@ def recon_router(state: StingerState):
     return "ReconHandoff"
 
 def output_formatter(state: StingerState):
+    """
+    Output Formatting Node
+    
+    **OUTPUT MAPPING**
+        "messages": output_messages
+        "tasks"   : output_task
+        "hosts"   : output_host #not in use
+    """
     second_last_message:AIMessage = state["messages"][-2]
     last_message: ToolMessage = state["messages"][-1]
+    output_messages: list[AnyMessage] = []
+    output_task: Task | None = None
+    # output_host: dict[str, Host] | None = None
 
     if last_message.type == 'tool':
         llm_output_format_selection = llm.bind_tools(tool_parsers)
@@ -141,14 +161,15 @@ def output_formatter(state: StingerState):
         )
 
         response = llm_invoke_retry(llm_output_format_selection,output_format_prompt)
-        state["messages"] = add_messages(state["messages"], response)
+        output_messages.append(response)
         output  = response.tool_calls[0]["args"]
-        state["tasks"][ state["current_task"] ]["output"].append(output)
+        output_task = copy.copy(state["tasks"][ state["current_task"] ])
+        output_task["output"].append(output)
 
         return {
-            "messages": state["messages"],
-            "hosts": state["hosts"],
-            "tasks": state["tasks"]
+            "messages": output_messages,
+            # "hosts": state["hosts"],
+            "tasks": output_task
         }
     else:
         return {
@@ -157,13 +178,26 @@ def output_formatter(state: StingerState):
 
 
 def validator(state: StingerState):
-    state["tasks"][state["current_task"]]["preflightcheck"] = True
-    target_ip = state["tasks"][state["current_task"]]["target_ip"]
+    """
+    Output Formatting Node
+
+    **OUTPUT MAPPING**
+        "messages": output_messages
+        "tasks"   : output_task
+        "hosts"   : output_host 
+    """
+    output_messages: list[AnyMessage] = []
+    output_task: Task = copy.copy(state["tasks"][ state["current_task"] ])
+    output_host: Host | None = None
+
+    output_task["preflightcheck"] = True
+    target_ip = output_task["target_ip"]
+    output_host = copy.copy(state["hosts"][ target_ip ])
     validator_prompt_template = get_task_answer_prompt_template()
     validator_prompt = validator_prompt_template.invoke(
         {
-            "task": state["tasks"][ state["current_task"] ]["task"],
-            "host_data": state["hosts"][ target_ip ]
+            "task": output_task["task"],
+            "host_data": output_host
         }
     )
 
@@ -176,17 +210,17 @@ def validator(state: StingerState):
         }
     else:
         # noinspection PyTypedDict
-        state["tasks"][ state["current_task"] ]["status"] = "validated"
-        state["tasks"][ state["current_task"] ]["verdict"] = response
+        output_task["status"] = "validated"
+        output_task["verdict"] = response
 
-        target_ip = state["tasks"][ state["current_task"] ]["target_ip"]
-        state["hosts"][target_ip]["verdicts"].append(response)
+        output_host["verdicts"].append(response)
 
         return {
             "messages": [AIMessage(f"ReconValidator: Task {state["current_task"]} validated.\n"
                                    f"Question: {response.question}\n"
                                    f"Answer: {response.answer}\n")],
-            "tasks": state["tasks"]
+            "tasks": output_task,
+            "hosts": {target_ip: output_host}
         }
 
 
@@ -220,46 +254,3 @@ recon_workflow.add_node("ReconValidator", validator)
 recon_workflow.add_edge("ReconValidator", "ReconAgent")
 
 recon_graph = recon_workflow.compile()
-
-if __name__ == "__main__":
-    config = Configuration
-    test_state = StingerState(
-        tasks=[{"task":"Find common open ports on 127.0.0.1.",
-                "status":"new",
-                "agent": "Recon"}],
-        hosts={},
-        context="",
-        messages=[HumanMessage("Find common open ports on 127.0.0.1")],
-        next= ""
-    )
-
-    recon_graph.invoke(test_state, {"recursion_limit": 6})
-
-# {
-#   "messages": [
-#     {
-#       "content": "foobar",
-#       "type": "human"
-#     }
-#   ],
-#   "hosts": {
-#     "a": "b"
-#   },
-#   "tasks": [
-#     {
-#       "task": "Find common open ports on 127.0.0.1.",
-#       "target_ip": "127.0.0.1",
-#       "status": "New",
-#       "recon": "Recon",
-#       "tool": [],
-#       "output": [],
-#       "answer": {
-#         "question": "",
-#         "answer": ""
-#       }
-#     }
-#   ],
-#   "current_task": 0,
-#   "context": "",
-#   "next": ""
-# }

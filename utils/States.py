@@ -3,7 +3,6 @@ from typing_extensions import TypedDict
 from langchain_core.messages import AnyMessage, ToolMessage
 from langgraph.graph import add_messages
 
-
 ####################################
 # State Objects
 ####################################
@@ -39,11 +38,12 @@ class InitialAccessExploit(TypedDict):
 
 class Host(TypedDict):
     """Single network entity"""
+    id: Annotated[str,..., "The host's immutable tracking ID, it will never change"]
     ip_address: Annotated[str, ..., "IP address of the host"]
-    hostname: Annotated[List[str], ..., "DNS hostname associated to the host."]
+    hostname: Annotated[list[str], ..., "DNS hostname associated to the host."]
     ports: Annotated[dict[str, Port], ..., "Mapping of ports to their attributes."]
     initial_access_exploit: Annotated[list[InitialAccessExploit]|None, ..., "Maps port integer to an initial access exploit."]
-    verdicts: Annotated[List[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
+    verdicts: Annotated[list[TaskAnswer], ..., "Task verdicts rendered associated to this host for completed task."]
 
 class ExploitStep(TypedDict):
     """Single Task entity for agents to process."""
@@ -77,7 +77,7 @@ class Task(TypedDict):
 ####################################
 # REDUCER FUNCTION
 ####################################
-def host_dict_merge( current:list[Task], new:Task|list[Task] ):
+def dict_merge(current:dict[str, Host], new:dict[str, Host]):
     return {**current, **new}
 
 def task_list_merge( current:list[Task], new:Task|list[Task] ):
@@ -118,7 +118,7 @@ def task_list_merge( current:list[Task], new:Task|list[Task] ):
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: Annotated[dict[str, Host], host_dict_merge] # e.g. 192.168.3.4
+    hosts: Annotated[dict[str, Host], dict_merge] # e.g. 192.168.3.4
     tasks: Annotated[list[Task], task_list_merge]
     current_task: int  # points to the list index for tasks field
     context: list[str|Host]
