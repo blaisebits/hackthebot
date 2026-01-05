@@ -1,6 +1,5 @@
-from langchain.chains.question_answering.map_reduce_prompt import system_template
 from langchain_core.prompts import ChatPromptTemplate
-
+# Need to add markdown files and watchers for updates
 
 def get_recon_prompt_template()->ChatPromptTemplate:
     """Recon Agent prompt template to support tool calling

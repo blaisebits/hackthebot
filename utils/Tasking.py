@@ -11,6 +11,12 @@ def annoying_debug(x):
     print(x)
     print("="*70)
 
+def get_working_task(agent: str, tasks: [Task]) -> int|None:
+    """Get the index to the first working task assigned to the agent. Returns None on no task found."""
+    for index, task in enumerate(tasks):
+        if task["agent"] == agent and task["status"] == "working": return index
+    return None
+
 def get_new_task(agent: str, tasks: [Task]) -> int|None:
     """Get the index to the first new task assigned to the agent. Returns None on no task found."""
     for index, task in enumerate(tasks):

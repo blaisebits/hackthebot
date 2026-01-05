@@ -102,7 +102,7 @@ def task_list_merge( current:list[Task], new:Task|list[Task] ):
         output += new
     else:
         #updating a single task
-        new_task_id:str = new.get("task")
+        new_task_id:str = new["id"]
         for current_task in current:
             match:bool = current_task.get("id") == new_task_id
             if match:
@@ -118,7 +118,7 @@ def task_list_merge( current:list[Task], new:Task|list[Task] ):
 
 class StingerState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    hosts: Annotated[dict[str, Host], dict_merge] # e.g. 192.168.3.4
+    hosts: Annotated[dict[str, Host], dict_merge] # e.g. 192.168.3.4 -> Host Object
     tasks: Annotated[list[Task], task_list_merge]
     current_task: int  # points to the list index for tasks field
     context: list[str|Host]

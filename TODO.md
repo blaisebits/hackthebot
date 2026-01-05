@@ -45,6 +45,50 @@
 * [ ] Change handling of state table: State is passed by reference, will need place holders for returnable values and not edit the state object directly.
   * [ ] Recon / Enum Agents
   * [ ] Exploit / Agent
+
+### StingerState Mutation Locations
+#### StingerAgent.py
+- [ ] Line 90: `state["current_task"] = index`
+- [ ] Line 154: `state["messages"] = add_messages(...)` (test code)
+- [ ] Line 155: `state["context"] = "..."` (test code)
+
+#### EnumAgent.py
+- [ ] Line 35: `state["current_task"] = get_new_task(...)`
+- [ ] Line 48: `state["current_task"] = get_new_task(...)`
+- [ ] Line 55: `state["tasks"][...]["status"] = "working"`
+- [ ] Line 69: `state["hosts"][...] = target_host`
+- [ ] Line 70: `state["tasks"][...]["preflightcheck"] = True`
+- [ ] Line 91: `state["tasks"][...]["tool"].append(...)`
+- [ ] Line 134: `state["messages"] = add_messages(...)`
+- [ ] Line 136: `state["tasks"][...]["output"].append(output)`
+- [ ] Line 150: `state["tasks"][...]["preflightcheck"] = True`
+- [ ] Line 169: `state["tasks"][...]["status"] = "validated"`
+- [ ] Line 170: `state["tasks"][...]["verdict"] = response`
+- [ ] Line 173: `state["hosts"][...]["verdicts"].append(response)`
+
+#### ExploitAgent.py
+- [ ] Line 67: `state["current_task"] = get_new_task(...)`
+- [ ] Line 83: `state["hosts"][...]["initial_access_exploit"].append(iae)`
+- [ ] Line 85: `state["tasks"][...]["status"] = "validated"`
+- [ ] Line 101: `state["current_task"] = get_new_task(...)`
+- [ ] Line 108: `state["tasks"][...]["status"] = "working"`
+- [ ] Line 124: `state["hosts"][...] = target_host`
+- [ ] Line 125: `state["tasks"][...]["preflightcheck"] = True`
+- [ ] Line 158: `state["tasks"][...]["output"].append(exploit_task)`
+- [ ] Line 172: `state["tasks"][...]["preflightcheck"] = True`
+- [ ] Line 185: `state["tasks"][...]["status"] = "validated"`
+- [ ] Line 190: `state["tasks"][...]["verdict"] = TaskAnswer(...)`
+- [ ] Line 300: `state["tasks"][...]["steps"][...]["status"] = "working"`
+- [ ] Line 301: `state["tasks"][...]["steps"][...]["scratchpad"] = scratchpad`
+- [ ] Line 397: `state["tasks"][...]["steps"] = output_steps`
+- [ ] Line 403: `state["tasks"][...]["status"] = new_status`
+- [ ] Line 404: `state["tasks"][...]["initial_access_exploit"] = ...`
+- [ ] Line 406: `state["tasks"][...]["steps"][-1]["status"] = "validated"`
+- [ ] Line 408: `state["tasks"][...]["status"] = "failed"`
+
+#### BrowserAgent/agents.py
+- [ ] Line 27: `state["persistent_tools"][...] = {...}`
+- [ ] Line 30: `state["persistent_tools"][...] = {...}`
 * [ ] Check tasking data for potential answers before tool calls.
 * [ ] Move `OutputFormatters` to a yaml file for dynamic generation.
 * [ ] Create pydantic BaseModel schemas for use with tool calls to avoid TypedDict missing

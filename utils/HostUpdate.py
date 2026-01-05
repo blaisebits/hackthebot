@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy
 import string
 from random import choice
 
@@ -12,7 +12,7 @@ llm = Configuration["llm"]
 
 def host_update(input_state: StingerState):
     """Merges scan data into Host value"""
-    state:StingerState = copy.copy(input_state)
+    state:StingerState = deepcopy(input_state)
     current_task = state["tasks"][ state["current_task"] ]
     host_data = state["hosts"][ current_task["target_ip"] ]
     tool_output = current_task["output"][-1] # get last tool output
