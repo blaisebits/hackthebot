@@ -1,16 +1,19 @@
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langgraph.graph import StateGraph, START, add_messages
+from copy import deepcopy
+
+from langchain_core.messages import AIMessage, AnyMessage, ToolMessage
+from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import ToolNode
 from langgraph.types import Command
 
 from utils.Configuration import Configuration
 from utils.HostUpdate import host_update, get_stub_host
 from utils.LLMHelpers import llm_invoke_retry
+
 from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_enum_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
 from utils.SpecialAgents import SpecialAgents
-from utils.States import StingerState
-from utils.Tasking import get_new_task
+from utils.States import StingerState, Task, Host
+from utils.Tasking import get_new_task, annoying_debug, get_working_task
 from utils.Tooling import RoboPagesTools
 
 rb = RoboPagesTools
@@ -21,58 +24,75 @@ sp = SpecialAgents
 llm = Configuration["llm"]
 enum_tool_node = ToolNode(rb_tools)
 
+
 def enum_agent(state: StingerState):
+    """
+    Primary Tasking Node
+    **OUTPUT MAPPING**
+        "messages"    : agent_messages,
+        "tasks"       : output_task,
+        "current_task": output_current_task,
+        "hosts"       : output_hosts
+    """
     llm_with_tools = llm.bind_tools(rb_tools)
-    task_str = None
+    task_str: str = None
     agent_messages = []
     context = []
+    input_current_task: int = state["current_task"]
+    input_task: Task = state["tasks"][input_current_task]
+    input_hosts: dict[str, Host] | Host | None = None
+    output_current_task: int | None = None
+    output_task: Task | None = None
+    output_hosts: dict[str, Host] | None = None
 
-    # Tasking workflow:
-    #  Checking if working -> proceed to tool calling again
-    #  Check if validated -> check for next task
-    #  Check if new -> do preflightcheck and tool calls.
-    if not state["tasks"][state["current_task"]]["agent"] == "Enum":  # Not assigned to Enum
-        state["current_task"] = get_new_task("Enum", state["tasks"])
+    if (input_task["agent"] != "Enum" or
+            (input_task["status"] not in ["working", "new"])):
+        return {"messages": [AIMessage("EnumAgent: Task not assigned to me. Passing to Stinger.")]}
 
-    if state["tasks"][state["current_task"]]["agent"] == "Enum":  # Task assigned to Enum
-        if state["tasks"][state["current_task"]]["status"] == "working":  # Task is working
-            task_str = state["tasks"][state["current_task"]]["task"]
-            target_ip = state["tasks"][state["current_task"]]["target_ip"]
-            context.append(state["hosts"][target_ip])
-            agent_messages.append(AIMessage(f"EnumAgent: Reworking task {state["current_task"]}: \"{task_str}\"."))
+    output_current_task = input_current_task
+    input_task = state["tasks"][input_current_task]
+    target_ip = input_task["target_ip"]
+    input_hosts = state["hosts"][target_ip] if target_ip in state["hosts"].keys() else None
 
-        elif (state["tasks"][state["current_task"]]["status"] == "validated"
-              or state["tasks"][state["current_task"]]["status"] == "new"):  # task is validated/new
+    output_task = deepcopy(state["tasks"][input_current_task])
 
-            if state["tasks"][state["current_task"]]["status"] == "validated":
-                state["current_task"] = get_new_task("Enum", state["tasks"])
-                if state["current_task"] == -1:  # No more tasks for this agent
-                    return {
-                        "messages": [AIMessage("EnumAgent: No Tasks were marked for execution. Passing to Stinger.")]}
+    # Have a valid task to work with at this point
+    if input_task["status"] == "new":
+        task_str = input_task["task"]
+        target_ip = input_task["target_ip"]
+        output_task = deepcopy(state["tasks"][output_current_task])
+        # annoying_debug(output_task)
+        output_task["status"] = "working"
+        annoying_debug(state["tasks"][output_current_task])
+        agent_messages.append(AIMessage(f"EnumAgent: Starting new task {output_current_task}: \"{task_str}\"."))
 
-            task_str = state["tasks"][state["current_task"]]["task"]
-            target_ip = state["tasks"][state["current_task"]]["target_ip"]
-            state["tasks"][state["current_task"]]["status"] = "working"
-            agent_messages.append(AIMessage(f"EnumAgent: Starting new task {state["current_task"]}: \"{task_str}\"."))
+        # Preflight check is false
+        if not input_task["preflightcheck"]:
+            # Host is already being tracked
+            if input_hosts is not None:
+                # Target IP has entry in host table
+                agent_messages.append(AIMessage(
+                    f"EnumAgent: Sending task {output_current_task}: \"{task_str}\" to validator for pre-flight check."))
+                return {
+                    "messages": agent_messages,
+                    "current_task": output_current_task
+                }
+            else:
+                # Add blank entry to host table
+                target_ip = state["tasks"][output_current_task]["target_ip"]
+                target_host = get_stub_host(target_ip)
+                target_host["preflightcheck"] = True
+                output_hosts = {target_host["ip_address"]: target_host}
+                task_str = input_task["task"]
 
-            if not state["tasks"][state["current_task"]]["preflightcheck"]:  # No PFC yet
-                if state["tasks"][state["current_task"]]["target_ip"] in state["hosts"].keys():  # Target IP has entry in host table
-                    agent_messages.append(AIMessage(f"EnumAgent: Sending task {state["current_task"]}: \"{task_str}\" to validator for pre-flight check."))
-                    return{
-                        "messages": agent_messages,
-                        "current_task": state["current_task"]
-                    }
-                else:
-                    # Add blank entry to host table
-                    target_host = get_stub_host(state["tasks"][state["current_task"]]["target_ip"])
+        context.append(output_hosts[target_ip])
 
-                    state["hosts"][target_host["ip_address"]] = target_host
-                    state["tasks"][state["current_task"]]["preflightcheck"] = True
-                    task_str = state["tasks"][state["current_task"]]["task"]
-            context.append(state["hosts"][target_ip])
-
-        else:  # No tasks available, routing back to Stinger
-            return {"messages": [AIMessage("EnumAgent: No Tasks were marked for execution. Passing to Stinger.")]}
+    # Task status is "working"
+    else:
+        task_str = input_task["task"]
+        target_ip = input_task["target_ip"]
+        context.append(input_hosts[target_ip])
+        agent_messages.append(AIMessage(f"EnumAgent: Reworking task {output_current_task}: \"{task_str}\"."))
 
     ## Setting up LLM Call
     if task_str is not None:
@@ -81,20 +101,19 @@ def enum_agent(state: StingerState):
         enum_prompt = enum_prompt_template.invoke(
             {
                 "tasks": task_str,
-                "context": context,
-                "previous_attempts": state["tasks"][state["current_task"]]["output"]
+                "context": context
             }
         )
 
         # response = llm_with_tools.invoke(enum_prompt)
-        response = llm_invoke_retry(llm_with_tools,enum_prompt)
-        state["tasks"][state["current_task"]]["tool"].append(response.tool_calls[0]["name"])
+        response = llm_invoke_retry(llm_with_tools, enum_prompt)
+        output_task["tool"].append(response.tool_calls[0]["name"])
         agent_messages.append(response)
         return {
             "messages": agent_messages,
-            "tasks": state["tasks"],
-            "current_task": state["current_task"],
-            "hosts": state["hosts"]
+            "tasks": output_task,
+            "current_task": output_current_task,
+            "hosts": output_hosts
         }
     else:
         # return no tasks response
@@ -113,8 +132,20 @@ def enum_router(state: StingerState):
 
 
 def output_formatter(state: StingerState):
-    second_last_message:AIMessage = state["messages"][-2]
-    last_message:ToolMessage = state["messages"][-1]
+    """
+    Output Formatting Node
+
+    **OUTPUT MAPPING**
+        "messages": output_messages
+        "tasks"   : output_task
+        "hosts"   : output_host #not in use
+    """
+
+    second_last_message: AIMessage = state["messages"][-2]
+    last_message: ToolMessage = state["messages"][-1]
+    output_messages: list[AnyMessage] = []
+    output_task: Task | None = None
+    # output_host: dict[str, Host] | None = None
 
     if last_message.type == 'tool':
         llm_output_format_selection = llm.bind_tools(tool_parsers)
@@ -129,16 +160,16 @@ def output_formatter(state: StingerState):
             }
         )
 
-        # response = llm_output_format_selection.invoke(output_format_prompt)
-        response = llm_invoke_retry(llm_output_format_selection,output_format_prompt)
-        state["messages"] = add_messages(state["messages"], response)
+        response = llm_invoke_retry(llm_output_format_selection, output_format_prompt)
+        output_messages.append(response)
         output = response.tool_calls[0]["args"]
-        state["tasks"][state["current_task"]]["output"].append(output)
+        output_task = deepcopy(state["tasks"][state["current_task"]])
+        output_task["output"].append(output)
 
         return {
-            "messages": state["messages"],
-            "hosts": state["hosts"],
-            "tasks": state["tasks"]
+            "messages": output_messages,
+            # "hosts": state["hosts"],
+            "tasks": output_task
         }
     else:
         return {
@@ -147,36 +178,49 @@ def output_formatter(state: StingerState):
 
 
 def validator(state: StingerState):
-    state["tasks"][state["current_task"]]["preflightcheck"] = True
-    target_ip = state["tasks"][state["current_task"]]["target_ip"]
+    """
+    Output Formatting Node
+
+    **OUTPUT MAPPING**
+        "messages": output_messages
+        "tasks"   : output_task
+        "hosts"   : output_host 
+    """
+    output_messages: list[AnyMessage] = []
+    output_task: Task = deepcopy(state["tasks"][state["current_task"]])
+    output_host: Host | None = None
+
+    output_task["preflightcheck"] = True
+    target_ip = output_task["target_ip"]
+    output_host = deepcopy(state["hosts"][target_ip])
     validator_prompt_template = get_task_answer_prompt_template()
     validator_prompt = validator_prompt_template.invoke(
         {
-            "task": state["tasks"][state["current_task"]]["task"],
-            "host_data": state["hosts"][target_ip]
+            "task": output_task["task"],
+            "host_data": output_host
         }
     )
 
     llm_with_structured_output = llm.with_structured_output(TaskAnswer)
-    # response = llm_with_structured_output.invoke(validator_prompt)
-    response = llm_invoke_retry(llm_with_structured_output,validator_prompt)
+    response = llm_invoke_retry(llm_with_structured_output, validator_prompt)
 
     if response.answer == "":  # Check if task needs further processing from blank answer
         return {
             "messages": [AIMessage("EnumValidator: Task unanswered, passing to EnumAgent.")]
         }
     else:
-        state["tasks"][state["current_task"]]["status"] = "validated"
-        state["tasks"][state["current_task"]]["verdict"] = response
+        # noinspection PyTypedDict
+        output_task["status"] = "validated"
+        output_task["verdict"] = response
 
-        target_ip = state["tasks"][state["current_task"]]["target_ip"]
-        state["hosts"][target_ip]["verdicts"].append(response)
+        output_host["verdicts"].append(response)
 
         return {
             "messages": [AIMessage(f"EnumValidator: Task {state["current_task"]} validated.\n"
                                    f"Question: {response.question}\n"
                                    f"Answer: {response.answer}\n")],
-            "tasks": state["tasks"]
+            "tasks": output_task,
+            "hosts": {target_ip: output_host}
         }
 
 
@@ -190,38 +234,30 @@ def handoff(state: StingerState):
 
 
 # Defining the agent graph
+# noinspection PyTypeChecker
 enum_workflow = StateGraph(StingerState)
 
 enum_workflow.add_edge(START, "EnumAgent")
+# noinspection PyTypeChecker
 enum_workflow.add_node("EnumAgent", enum_agent)
 
 enum_workflow.add_conditional_edges("EnumAgent", enum_router, ["EnumToolNode", "EnumHandoff", "EnumValidator"])
 enum_workflow.add_node("EnumToolNode", enum_tool_node)
+# noinspection PyTypeChecker
 enum_workflow.add_node("EnumHandoff", handoff)
 
 enum_workflow.add_edge("EnumToolNode", "EnumOutputFormatter")
+# noinspection PyTypeChecker
 enum_workflow.add_node("EnumOutputFormatter", output_formatter)
 
 enum_workflow.add_edge("EnumOutputFormatter", "HostUpdate")
+# noinspection PyTypeChecker
 enum_workflow.add_node("HostUpdate", host_update)
 
 enum_workflow.add_edge("HostUpdate", "EnumValidator")
+# noinspection PyTypeChecker
 enum_workflow.add_node("EnumValidator", validator)
 
 enum_workflow.add_edge("EnumValidator", "EnumAgent")
 
 enum_graph = enum_workflow.compile()
-
-if __name__ == "__main__":
-    config = Configuration
-    test_state = StingerState(
-        tasks=[{"task": "Find common open ports on 127.0.0.1.",
-                "status": "new",
-                "agent": "Enum"}],
-        hosts={},
-        context="",
-        messages=[HumanMessage("Find common open ports on 127.0.0.1")],
-        next=""
-    )
-
-    enum_graph.invoke(test_state, {"recursion_limit": 6})

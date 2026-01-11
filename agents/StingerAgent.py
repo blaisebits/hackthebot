@@ -83,11 +83,12 @@ def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploi
     p_tools:dict = {"stinger":"PLACEHOLDER"}
     goto:str = ""
     agent_message:[AIMessage] = ""
+    output_current_task:int = -1
     for index, task in enumerate(state["tasks"]):
         if task["status"] == "new":
             # noinspection PyTypeChecker
             goto = task["agent"]
-            state["current_task"] = index
+            output_current_task = index
             agent_message = [AIMessage(f"StingerAgent: Passing to {goto}")]
             break
 
@@ -99,7 +100,7 @@ def stinger_agent(state: StingerState) -> Command[Literal["Recon","Enum","Exploi
             update={
                 "next": goto,
                 "messages": agent_message,
-                "current_task": state["current_task"],
+                "current_task": output_current_task,
                 "persistent_tools": p_tools
             }
         )
