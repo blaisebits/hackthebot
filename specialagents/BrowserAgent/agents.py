@@ -1,9 +1,11 @@
+from copy import deepcopy
+
 from langchain_core.messages import AIMessage
 from langgraph.constants import START
 from langgraph.graph import StateGraph
 from specialagents.BrowserAgent.Browser import PersistentBrowserAgent
 from utils.ContextHelpers import build_exploit_task_context
-from utils.States import StingerState, ExploitTask, Task, ExploitStep
+from utils.States import StingerState, ExploitTask, Task
 from utils.Tasking import get_current_exploit_task, get_current_exploit_step
 
 _AGENT_NAME="BrowserAgent"
@@ -11,26 +13,30 @@ _AGENT_MAPPING=["Recon","Enum","Exploit"]
 _AGENT_DESCRIPTION="Provides access to a fully functional web browser, handling task such as browsing, navigating, uploading or downloading files."
 
 async def browser_wrapper(state: StingerState):
-    agent:PersistentBrowserAgent = None
+    agent:PersistentBrowserAgent|None = None
     agent_messages:list = []
-    result:list = None
+    result:list|None = None
+    input_persistent_tools:dict = state["persistent_tools"]
+    input_tasks:list[Task] = state["tasks"]
+    output_tasks:list[Task] = deepcopy(state["tasks"])
+    output_persistent_tools:dict = {}
 
     # Check for existing browser or create one
     current_task = state["current_task"]
-    target_ip = state["tasks"][current_task]["target_ip"]
+    target_ip = input_tasks[current_task]["target_ip"]
     session_name = f"browser_{target_ip}"
-    if _AGENT_NAME in state["persistent_tools"]:
-        if session_name in state["persistent_tools"][_AGENT_NAME]:
-            agent = state["persistent_tools"][_AGENT_NAME][session_name]
+    if _AGENT_NAME in input_persistent_tools:
+        if session_name in input_persistent_tools[_AGENT_NAME]:
+            agent = input_persistent_tools[_AGENT_NAME][session_name]
         else:
             agent = PersistentBrowserAgent(session_name)
-            state["persistent_tools"][_AGENT_NAME] = { session_name: agent }
+            output_persistent_tools[_AGENT_NAME] = { session_name: agent }
     else:
         agent = PersistentBrowserAgent(session_name)
-        state["persistent_tools"][_AGENT_NAME] = { session_name: agent }
+        output_persistent_tools[_AGENT_NAME] = { session_name: agent }
     agent_messages.append(AIMessage(f"{_AGENT_NAME}: Using browser session '{session_name}"))
 
-    task:Task = state["tasks"][state["current_task"]]
+    task:Task = input_tasks[state["current_task"]]
 
     # Extract task from EXPLOIT tasks
     if task["agent"] == "Exploit":
@@ -46,26 +52,30 @@ async def browser_wrapper(state: StingerState):
         exploit_task_index: int = get_current_exploit_task(state)
         browser_task = f"<TASK>\n{step_task}\n</TASK>\n<CONTEXT>\n{build_exploit_task_context(state)}</CONTEXT>"
         result = await agent.execute_task(browser_task)
-        state["tasks"][current_task]["output"][current_exploit_task]["steps"][step_index]["scratchpad"] += result["messages"][-1].text()
+        # noinspection PyTypeChecker
+        output_tasks[current_task]["output"][current_exploit_task]["steps"][step_index]["scratchpad"] += result["messages"][-1].text()
 
     #extract tasks for all other agents
     else:
-        task_obj: Task = state["tasks"][state["current_task"]]
+        task_obj: Task = input_tasks[state["current_task"]]
         task: str = task_obj["task"]
 
         result = await agent.execute_task(task)
-        state["tasks"][current_task]["output"] += [result["messages"][-1].text()]
-
+        # noinspection PyTypeChecker
+        output_tasks[current_task]["output"] += [result["messages"][-1].text()]
 
     return {
         "messages": agent_messages,
-        "persistent_tools": state["persistent_tools"],
-        "tasks": state["tasks"]
+        "persistent_tools": output_persistent_tools,
+        "tasks": output_tasks[current_task]
     }
 
+
+# noinspection PyTypeChecker
 browser_agent_workflow = StateGraph(StingerState)
 
 browser_agent_workflow.add_edge(START, "Browser")
+# noinspection PyTypeChecker
 browser_agent_workflow.add_node("Browser", browser_wrapper)
 
 browser_agent_graph = browser_agent_workflow.compile()

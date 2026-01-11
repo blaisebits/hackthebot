@@ -122,7 +122,7 @@ class StingerState(TypedDict):
     tasks: Annotated[list[Task], task_list_merge]
     current_task: int  # points to the list index for tasks field
     context: list[str|Host]
-    persistent_tools: dict[str, Any] #{agent_name:tool}
+    persistent_tools: Annotated[dict[str, Any], dict_merge]
     next: str #Used for routing to primary agents
     working_memory: str #Only used for internal primary agent information
     longterm_memory: str #only here just in case it's needed

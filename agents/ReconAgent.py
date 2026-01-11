@@ -182,43 +182,43 @@ def validator(state: StingerState):
     **OUTPUT MAPPING**
         "messages": output_messages
         "tasks"   : output_task
-        "hosts"   : output_host 
+        "hosts"   : output_host
     """
     output_messages: list[AnyMessage] = []
-    output_task: Task = deepcopy(state["tasks"][ state["current_task"] ])
-    output_host: Host | None = None
+    output_task: Task = deepcopy(state["tasks"][state["current_task"]])
+    target_ip = output_task["target_ip"]
+    output_hosts: dict[str, Host] = { target_ip: deepcopy(state["hosts"][target_ip]) }
 
     output_task["preflightcheck"] = True
-    target_ip = output_task["target_ip"]
-    output_host = deepcopy(state["hosts"][ target_ip ])
     validator_prompt_template = get_task_answer_prompt_template()
     validator_prompt = validator_prompt_template.invoke(
         {
             "task": output_task["task"],
-            "host_data": output_host
+            "host_data": output_hosts[target_ip]
         }
     )
 
     llm_with_structured_output = llm.with_structured_output(TaskAnswer)
-    response = llm_invoke_retry(llm_with_structured_output,validator_prompt)
+    response = llm_invoke_retry(llm_with_structured_output, validator_prompt)
 
-    if response.answer == "":    # Check if task needs further processing from blank answer
+    if response.answer == "":  # Check if task needs further processing from blank answer
         return {
-            "messages": [AIMessage("ReconValidator: Task unanswered, passing to ReconAgent.")]
+            "messages": [AIMessage("EnumValidator: Task unanswered, passing to EnumAgent.")],
+            "tasks": output_task
         }
     else:
         # noinspection PyTypedDict
         output_task["status"] = "validated"
         output_task["verdict"] = response
 
-        output_host["verdicts"].append(response)
+        output_hosts[target_ip]["verdicts"].append(response)
 
         return {
-            "messages": [AIMessage(f"ReconValidator: Task {state["current_task"]} validated.\n"
+            "messages": [AIMessage(f"EnumValidator: Task {state["current_task"]} validated.\n"
                                    f"Question: {response.question}\n"
                                    f"Answer: {response.answer}\n")],
             "tasks": output_task,
-            "hosts": {target_ip: output_host}
+            "hosts": output_hosts
         }
 
 
