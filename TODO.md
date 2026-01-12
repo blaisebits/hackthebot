@@ -15,8 +15,8 @@
 * [x] Upon validation, append the verdicts to the corresponding entry in the state Host dict
 
 ## Stinger
-* [x] Expand `Task` structure to capture the out of tools or answers to questions
-* [x] Adjust task list prompt to leave the answer fields blank on generation, or at least the answer.
+* [ ] Decision on handling target hosts with multiple exploits
+  * What is the target has multiple exploits and one could give high privs
 
 ## Exploit
 ### Validator

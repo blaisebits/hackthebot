@@ -16,7 +16,7 @@ def host_update(input_state: StingerState):
     current_task = state["tasks"][ state["current_task"] ]
     host_data = state["hosts"][ current_task["target_ip"] ]
     tool_output = current_task["output"][-1] # get last tool output
-    output_host:Host|None = None
+    output_hosts:dict[str, Host]|None = None
 
     update_host_prompt_template = get_update_host_prompt_template()
     update_host_prompt = update_host_prompt_template.invoke(
@@ -30,11 +30,10 @@ def host_update(input_state: StingerState):
     # Preserving Verdicts from LLM shenanigans and dropping.
     response:Host = llm_with_structured_output.invoke(update_host_prompt)
     response["verdicts"] = host_data["verdicts"]
-    output_host = state["hosts"][ current_task["target_ip"] ]
-    output_host= response
+    output_hosts= { current_task["target_ip"]: response }
 
     return {
-        "hosts": output_host,
+        "hosts": output_hosts,
         "messages": [AIMessage(f"HostUpdate: Updated host {current_task["target_ip"]} with scan data from {current_task["tool"][-1]}.")]
     }
 

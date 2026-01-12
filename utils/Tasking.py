@@ -70,6 +70,10 @@ def get_current_exploit_task(state: StingerState) -> int|None:
         if task["status"] == "working":
             return index
 
+    for index, task in x:
+        if task["status"] == "new":
+            return index
+
     return None
 
 def get_current_exploit_step(state: StingerState) -> int|None:

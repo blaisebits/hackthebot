@@ -13,7 +13,7 @@ from utils.OutputFormatters import tool_parsers, TaskAnswer
 from utils.Prompts import get_recon_prompt_template, get_output_format_prompt_template, get_task_answer_prompt_template
 from utils.SpecialAgents import SpecialAgents
 from utils.States import StingerState, Task, Host
-from utils.Tasking import get_new_task, annoying_debug, get_working_task
+from utils.Tasking import annoying_debug
 from utils.Tooling import RoboPagesTools
 
 rb = RoboPagesTools
@@ -34,7 +34,7 @@ def recon_agent(state: StingerState):
         "hosts"       : output_hosts
     """
     llm_with_tools = llm.bind_tools(rb_tools)
-    task_str:str = None
+    task_str:str|None = None
     agent_messages = []
     context = []
     input_current_task: int = state["current_task"]
