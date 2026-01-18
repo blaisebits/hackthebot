@@ -29,7 +29,7 @@ class ExploitSuggestions(BaseModel):
 class ExploitStepSchema(BaseModel):
     id:str = Field(description="The step's immutable tracking ID, it will never change")
     iterations:int = Field(description="The number of attempts for completing this step")
-    scratchpad:str = Field(description="Actions and outcomes taken to complete this ExploitStep")
+    # scratchpad:str = Field(description="Actions and outcomes taken to complete this ExploitStep")
     status:Literal["new", "working", "validated", "failed", "skipped"] = Field(description="The current status of the exploit step")
     step_task:str = Field(description="The action to complete for the ExploitStep")
 

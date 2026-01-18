@@ -309,7 +309,7 @@ def get_exploit_step_status_template()->ChatPromptTemplate:
                         "      * If a file needs to be renamed before uploading\n"
                         "      * If a file needs to be recompiled before executing\n"
                         "      * Perform a request to get a new CSRF token\n"
-                        "* Every `scratchpad` field should be returned as blank for the server to fill-in\n"
+                        # "* Every `scratchpad` field should be returned as blank for the server to fill-in\n"
                         "* For determining `Create initial access exploit to the target` task's validity the `scratchpad` should contain complete and functional code or a structured tool call with the `name` and `args`\n"
                         "  * Initial Access Exploits may contain placeholders values like <command> which is to be considered valid\n"
                         "* If the `Verify the initial access exploit by sending the \`pwd\` command` task is validated, do not return `ExploitStepUpdates` and instead return `ExploitTaskUpdates`\n"

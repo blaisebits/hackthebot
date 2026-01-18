@@ -112,8 +112,15 @@ def repair_scratchpad(new_steps:[ExploitStep], old_steps:[ExploitStep]) -> [Expl
     Populates the new exploit step list scratchpad values from the old list
     Matches elements by `id` value
     """
+    # match previous data
     for i, step in enumerate(new_steps):
         for oldstep in old_steps:
             if step["id"] == oldstep["id"]:
                 new_steps[i]["scratchpad"] = oldstep["scratchpad"]
+
+    # ensure the `scratchpad` field exists
+    for step in new_steps:
+        if 'scratchpad' not in step.keys():
+            step["scratchpad"] = ""
+
     return new_steps
